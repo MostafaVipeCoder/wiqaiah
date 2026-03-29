@@ -1,35 +1,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
 :root {
-  --primary: #4D70FB;
-  --primary-hover: #3D5AF1;
-  --accent-pink: #FF63B0;
-  --accent-orange: #FFB84C;
-  --bg-pure: #FFFFFF;
-  --bg-soft: #F8FAFC;
-  --text-main: #1A1C30;
-  --text-muted: #64748B;
-  --white: #FFFFFF;
-  
-  --glass: rgba(255, 255, 255, 0.8);
-  --border: rgba(77, 112, 251, 0.1);
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  
+  /* ── Brand colors from Wiqaiah logo ── */
+  --primary:       #2A9D8F;   /* teal main */
+  --primary-hover: #21867A;   /* teal dark */
+  --primary-light: #3DBDAD;   /* teal bright */
+  --primary-pale:  #E6F7F5;   /* teal wash */
+  --accent-teal:   #26B5A5;   /* teal dots */
+
+  /* ── Neutrals ── */
+  --bg-pure:   #FFFFFF;
+  --bg-soft:   #F4FAFA;
+  --text-main: #1A2C2A;
+  --text-muted:#5A7A76;
+  --white:     #FFFFFF;
+
+  /* ── Utility ── */
+  --glass:      rgba(255, 255, 255, 0.85);
+  --border:     rgba(42, 157, 143, 0.15);
+  --shadow-sm:  0 1px 2px 0 rgba(42,157,143,0.06);
+  --shadow-md:  0 4px 16px rgba(42,157,143,0.12);
+  --shadow-lg:  0 12px 40px rgba(42,157,143,0.18);
+
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
-}
+html { scroll-behavior: smooth; font-size: 16px; }
 
 body {
   font-family: 'Outfit', sans-serif;
@@ -37,71 +35,25 @@ body {
   color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-h1, h2, h3, h4 {
-  color: var(--text-main);
-  font-weight: 700;
-  line-height: 1.2;
-}
+h1, h2, h3, h4 { color: var(--text-main); font-weight: 700; line-height: 1.2; }
+em { font-family: 'Lora', serif; font-style: italic; font-weight: 400; }
+a { text-decoration: none; color: inherit; transition: var(--transition); }
+ul { list-style: none; }
+button { cursor: pointer; border: none; outline: none; background: none; font-family: inherit; transition: var(--transition); }
 
-em {
-  font-family: 'Lora', serif;
-  font-style: italic;
-  font-weight: 400;
-}
-
-a {
-  text-decoration: none;
-  color: inherit;
-  transition: var(--transition);
-}
-
-ul {
-  list-style: none;
-}
-
-button {
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background: none;
-  font-family: inherit;
-  transition: var(--transition);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.section-padding {
-  padding: 100px 0;
-}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.section-padding { padding: 100px 0; }
 
 @media (max-width: 768px) {
-  .section-padding {
-    padding: 60px 0;
-  }
+  .section-padding { padding: 60px 0; }
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+@keyframes fadeIn  { from { opacity: 0; }                       to { opacity: 1; } }
+@keyframes fadeUp  { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes float   { 0%,100% { transform: translateY(0); }      50% { transform: translateY(-10px); } }
 
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in { animation: fadeIn 0.8s ease forwards; }
-.animate-fade-up { animation: fadeUp 0.8s ease forwards; }
+.animate-fade-in  { animation: fadeIn  0.8s ease forwards; }
+.animate-fade-up  { animation: fadeUp  0.8s ease forwards; }

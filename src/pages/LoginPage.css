@@ -1,0 +1,64 @@
+/* LoginPage Styles */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+}
+
+.login-card {
+  background: var(--white);
+  padding: 60px;
+  border-radius: 32px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.login-logo {
+  height: 50px;
+  margin-bottom: 32px;
+  mix-blend-mode: multiply;
+}
+
+.login-card h2 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  color: var(--text-main);
+}
+
+.login-card p {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.error-msg {
+  background: #FFEEED;
+  color: #DC2626;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid #FECACA;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 18px;
+  border-radius: 12px;
+  font-size: 16px;
+  margin-top: 12px;
+}
+
+@media (max-width: 600px) {
+  .login-card { padding: 40px 24px; border-radius: 20px; }
+}

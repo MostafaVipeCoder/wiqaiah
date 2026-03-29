@@ -1,41 +1,77 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabase';
 import './Hero.css';
 
 const Hero = () => {
+  const { t, i18n } = useTranslation();
+  const [settings, setSettings] = useState({
+    consultation_price: 15.0,
+    discount_percentage: 10.0,
+    show_discount: true,
+    discount_text_en: "10% OFF FIRST SESSION",
+    discount_text_ar: "خصم 10% على أول جلسة"
+  });
+
+  useEffect(() => {
+    // Fetch settings from Supabase
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .single();
+      
+      if (data && !error) {
+        setSettings(data);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const discountText = i18n.language === 'ar' ? settings.discount_text_ar : settings.discount_text_en;
+  const currentPrice = settings.show_discount 
+    ? (settings.consultation_price * (1 - settings.discount_percentage / 100)).toFixed(2)
+    : settings.consultation_price.toFixed(2);
+
   return (
     <section className="hero-section">
-      <div className="hero-grid container">
+      <div className="container hero-grid">
         <div className="hero-content animate-fade-up">
           <div className="badge">
-            <span className="dot pink">.</span>
-            <span className="badge-text">Real Doctors. Real Answers. From Home.</span>
+            <span className="badge-dot"></span>
+            <span className="badge-text">{t('hero.badge')}</span>
           </div>
-          <h1>
-            Your smile deserves <em>total protection</em>, starting from your couch.
-          </h1>
-          <p className="hero-subtext">
-            Consult with <strong>Dr. Muhammad Elberbawi</strong> — a licensed expert with over 10 years of experience. Get live clarity on your dental health in just 20 minutes.
-          </p>
+          
+          <h1 dangerouslySetInnerHTML={{ __html: t('hero.title') }} />
+          
+          <p className="hero-subtext" dangerouslySetInnerHTML={{ __html: t('hero.subtitle') }} />
+
           <div className="hero-actions">
-            <a href="#book" className="primary-btn">Book Your Session</a>
+            <a href="/book" className="primary-btn">{t('hero.book_btn')}</a>
             <div className="price-tag">
-              <span className="price">$13.50</span>
-              <span className="old-price">$15</span>
-              <span className="discount">10% OFF FIRST SESSION</span>
+              <span className="price">${currentPrice}</span>
+              {settings.show_discount && (
+                <>
+                  <span className="old-price">${settings.consultation_price}</span>
+                  <span className="discount">{discountText}</span>
+                </>
+              )}
             </div>
           </div>
+
           <div className="hero-features">
-            <div className="feature"><span>✓</span> NO WAITING ROOMS</div>
-            <div className="feature"><span>✓</span> NO PRESCRIPTIONS</div>
-            <div className="feature"><span>✓</span> 100% PERSONALIZED</div>
+            <div className="feature"><span>✓</span> {t('hero.features.no_waiting')}</div>
+            <div className="feature"><span>✓</span> {t('hero.features.no_prescriptions')}</div>
+            <div className="feature"><span>✓</span> {t('hero.features.personalized')}</div>
           </div>
         </div>
+        
+        {/* Image side - placeholder (the user removed the original hero image) */}
         <div className="hero-image animate-fade-in">
           <div className="image-wrapper">
-             <img src="/hero_image.png" alt="Dr. Muhammad Consultation" className="hero-main-img" />
              <div className="gradient-sphere"></div>
-             <div className="floating-card c1">🦷 Preventive Care</div>
-             <div className="floating-card c2">✨ Online consult</div>
+             <div className="floating-card c1">🦷 {i18n.language === 'ar' ? 'عناية وقائية' : 'Preventive Care'}</div>
+             <div className="floating-card c2">✨ {i18n.language === 'ar' ? 'استشارة أونلاين' : 'Online consult'}</div>
           </div>
         </div>
       </div>

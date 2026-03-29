@@ -1,68 +1,78 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { Calendar, Clock, MapPin } from 'lucide-react';
 import './Webinars.css';
 
-const WebinarCard = ({ topic, date, live, spots, price, iconColor }) => (
-  <div className="webinar-card">
-    <div className="webinar-header" style={{ backgroundImage: `linear-gradient(135deg, ${iconColor}22, ${iconColor}44)` }}>
-      <div className="webinar-badges">
-        {live && <span className="live-badge">LIVE BY DR. MUHAMMAD</span>}
-        {spots && <span className="spots-badge">{spots} spots left</span>}
+const WebinarCard = ({ webinar }) => {
+  const { i18n } = useTranslation();
+  const title = i18n.language === 'ar' ? webinar.title_ar || webinar.title : webinar.title;
+  
+  return (
+    <div className="webinar-card">
+      <div className="webinar-header" style={{ background: 'linear-gradient(135deg, var(--primary-pale), var(--bg-soft))' }}>
+        <div className="webinar-badges">
+          <span className="live-badge">LIVE · DR. MUHAMMAD ELBERBAWI</span>
+          {webinar.is_published && <span className="spots-badge">{i18n.language === 'ar' ? 'سجل الآن' : 'REGISTER NOW'}</span>}
+        </div>
+        <div className="webinar-price">${webinar.price || 9}</div>
       </div>
-      <div className="webinar-price">${price}</div>
-    </div>
-    <div className="webinar-content">
-      <h3 className="webinar-topic">{topic}</h3>
-      <div className="webinar-meta">
-        <span className="meta-item">🗓 {date}</span>
-        <span className="meta-item">🕒 60 min · Zoom</span>
+      <div className="webinar-content">
+        <h3 className="webinar-topic">{title}</h3>
+        <div className="webinar-meta">
+          <span className="meta-item"><Calendar size={14} /> {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}</span>
+          <span className="meta-item"><Clock size={14} /> {new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 60 min</span>
+        </div>
+        <Link to={`/register/${webinar.id}`} className="book-btn">
+          {i18n.language === 'ar' ? 'اشترك في هذه الجلسة' : 'Book This Session'}
+        </Link>
       </div>
-      <button className="book-btn">Book Webinar Session</button>
     </div>
-  </div>
-);
+  );
+};
 
 const Webinars = () => {
-  const webinars = [
-    {
-      topic: "Children's Oral Health: Diet, Decay & Prevention",
-      date: "Thu, Apr 3 · 6:00 PM",
-      live: true,
-      spots: 12,
-      price: 9,
-      iconColor: "#FF63B0"
-    },
-    {
-      topic: "Understanding Gum Disease: Causes & Real Care",
-      date: "Mon, Apr 7 · 5:30 PM",
-      live: true,
-      spots: 8,
-      price: 9,
-      iconColor: "#4D70FB"
-    },
-    {
-      topic: "Oral Hygiene Masterclass: Simple Tools & Real Results",
-      date: "Sat, Apr 12 · 11:00 AM",
-      live: true,
-      price: 9,
-      iconColor: "#FFB84C"
-    }
-  ];
+  const { t, i18n } = useTranslation();
+  const [webinars, setWebinars] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWebinars = async () => {
+      const { data, error } = await supabase
+        .from('webinars')
+        .select('*')
+        .eq('is_published', true)
+        .order('start_time', { ascending: true });
+
+      if (data && !error) setWebinars(data);
+      setLoading(false);
+    };
+    fetchWebinars();
+  }, []);
+
+  if (loading) return null;
 
   return (
     <section id="sessions" className="webinars-section section-padding">
       <div className="container">
         <div className="webinars-top">
           <div className="webinars-info">
-            <div className="section-label">LIVE ONLINE WEBINARS</div>
-            <h2 className="section-title">Group sessions on <em>topics that matter</em></h2>
-            <p>Same expert. Broader topic. A fraction of the price.</p>
+            <div className="section-label">{i18n.language === 'ar' ? 'دروس مباشرة أونلاين' : 'LIVE ONLINE WEBINARS'}</div>
+            <h2 className="section-title" style={{ textAlign: 'left', marginBottom: 0 }}>
+              {i18n.language === 'ar' ? 'جلسات جماعية حول مواضيع تهمك' : 'Group sessions on topics that matter'}
+            </h2>
+            <p>{i18n.language === 'ar' ? 'نفس الخبير. موضوع أوسع. وبجزء بسيط من السعر.' : 'Same expert. Broader topic. A fraction of the price.'}</p>
           </div>
-          <a href="#" className="view-all">View all sessions →</a>
+          <a href="#" className="view-all">{i18n.language === 'ar' ? 'عرض جميع الجلسات ←' : 'View all sessions →'}</a>
         </div>
         <div className="webinar-grid">
-          {webinars.map((w, i) => (
-            <WebinarCard key={i} {...w} />
-          ))}
+          {webinars.map(w => <WebinarCard key={w.id} webinar={w} />)}
+          {webinars.length === 0 && (
+            <p style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', opacity: 0.5 }}>
+              {i18n.language === 'ar' ? 'لا توجد ويبينارز قادمة حالياً.' : 'No upcoming webinars at the moment.'}
+            </p>
+          )}
         </div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 .hero-section {
   padding-top: 140px;
   min-height: 100vh;
-  background: radial-gradient(circle at 10% 20%, rgba(77, 112, 251, 0.05) 0%, rgba(255, 255, 255, 1) 90%);
+  background: radial-gradient(circle at 10% 20%, var(--primary-pale) 0%, var(--bg-pure) 70%);
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -13,20 +13,20 @@
   grid-template-columns: 1.2fr 1fr;
   gap: 80px;
   align-items: center;
+  padding-bottom: 60px;
 }
 
-.hero-content {
-  max-width: 600px;
-}
+.hero-content { max-width: 600px; }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  background: var(--bg-pure);
+  gap: 8px;
+  background: var(--primary-pale);
   border: 1px solid var(--border);
   padding: 8px 16px;
   border-radius: 40px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .badge-text {
@@ -37,8 +37,14 @@
   letter-spacing: 0.5px;
 }
 
+.badge-dot {
+  width: 8px; height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
 .hero-content h1 {
-  font-size: 64px;
+  font-size: clamp(40px, 5vw, 64px);
   margin-bottom: 24px;
   color: var(--text-main);
   letter-spacing: -1.5px;
@@ -61,6 +67,7 @@
   align-items: center;
   gap: 24px;
   margin-bottom: 40px;
+  flex-wrap: wrap;
 }
 
 .primary-btn {
@@ -70,23 +77,21 @@
   border-radius: 12px;
   font-weight: 700;
   font-size: 16px;
-  box-shadow: 0 10px 24px rgba(77, 112, 251, 0.3);
+  display: inline-block;
+  box-shadow: 0 10px 24px rgba(42,157,143,0.3);
 }
 
 .primary-btn:hover {
   background: var(--primary-hover);
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(77, 112, 251, 0.4);
+  box-shadow: 0 12px 30px rgba(42,157,143,0.4);
 }
 
-.price-tag {
-  display: flex;
-  flex-direction: column;
-}
+.price-tag { display: flex; flex-direction: column; gap: 2px; }
 
 .price {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   color: var(--text-main);
 }
 
@@ -98,7 +103,7 @@
 
 .discount {
   font-size: 12px;
-  color: var(--accent-pink);
+  color: var(--primary-light);
   font-weight: 700;
   margin-top: 4px;
 }
@@ -118,11 +123,9 @@
   color: var(--text-muted);
 }
 
-.feature span {
-  color: var(--primary);
-  font-weight: 800;
-}
+.feature span { color: var(--primary); font-weight: 800; }
 
+/* ── Image side ── */
 .hero-image {
   position: relative;
   display: flex;
@@ -138,34 +141,15 @@
 
 .gradient-sphere {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 320px;
-  height: 320px;
-  background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+  width: 340px; height: 340px;
+  background: radial-gradient(circle, var(--primary-light), var(--primary));
   border-radius: 50%;
-  opacity: 0.15;
-  filter: blur(40px);
+  opacity: 0.12;
+  filter: blur(50px);
 }
 
-.floating-card {
-  position: absolute;
-  background: var(--white);
-  padding: 16px 24px;
-  border-radius: 12px;
-  box-shadow: var(--shadow-lg);
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--border);
-  animation: float 6s ease-in-out infinite;
-}
-
-.floating-card.c1 { top: 40px; right: -20px; animation-delay: 0s; }
-.floating-card.c2 { bottom: 60px; left: -20px; animation-delay: 3s; }
 .hero-main-img {
   width: 100%;
   height: auto;
@@ -176,19 +160,32 @@
   display: block;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+.floating-card {
+  position: absolute;
+  background: var(--white);
+  padding: 14px 20px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  z-index: 3;
+  animation: float 6s ease-in-out infinite;
+  color: var(--text-main);
 }
 
+.floating-card.c1 { top: 30px; right: -30px; animation-delay: 0s; }
+.floating-card.c2 { bottom: 50px; left: -30px; animation-delay: 3s; }
+
 @media (max-width: 1024px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
+  .hero-grid { grid-template-columns: 1fr; text-align: center; }
   .hero-content { max-width: 100%; }
   .hero-actions { justify-content: center; }
   .hero-features { justify-content: center; }
-  .hero-image { margin-top: 60px; }
-  .hero-content h1 { font-size: 48px; }
+  .image-wrapper { width: 300px; height: 300px; }
+  .floating-card.c1 { right: 0; }
+  .floating-card.c2 { left: 0; }
 }

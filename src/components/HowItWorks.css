@@ -1,7 +1,5 @@
 /* HowItWorks Styles */
-.how-section {
-  background: var(--bg-soft);
-}
+.how-section { background: var(--bg-soft); }
 
 .section-label {
   font-size: 13px;
@@ -13,10 +11,12 @@
 }
 
 .section-title {
-  font-size: 48px;
+  font-size: clamp(28px, 4vw, 48px);
   text-align: center;
   margin-bottom: 80px;
 }
+
+.section-title em { color: var(--primary); }
 
 .steps-grid {
   display: grid;
@@ -35,11 +35,23 @@
   overflow: hidden;
 }
 
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--primary);
+  opacity: 0;
+  transition: var(--transition);
+}
+
 .step-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-6px);
   box-shadow: var(--shadow-lg);
   border-color: var(--primary);
 }
+
+.step-card:hover::before { opacity: 1; }
 
 .step-num {
   font-size: 56px;
@@ -47,8 +59,7 @@
   color: var(--primary);
   opacity: 0.1;
   position: absolute;
-  top: 10px;
-  right: 20px;
+  top: 10px; right: 20px;
   line-height: 1;
 }
 
@@ -66,8 +77,4 @@
   line-height: 1.6;
   position: relative;
   z-index: 1;
-}
-
-@media (max-width: 768px) {
-  .section-title { font-size: 32px; }
 }

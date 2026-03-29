@@ -1,13 +1,12 @@
 /* Webinars Styles */
-.webinars-section {
-  background: var(--bg-soft);
-}
+.webinars-section { background: var(--bg-soft); }
 
 .webinars-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 60px;
+  gap: 20px;
 }
 
 .webinars-info p {
@@ -20,7 +19,11 @@
   font-weight: 700;
   color: var(--primary);
   font-size: 14px;
+  border-bottom: 1px solid var(--primary);
+  padding-bottom: 2px;
+  white-space: nowrap;
 }
+.view-all:hover { opacity: 0.75; }
 
 .webinar-grid {
   display: grid;
@@ -33,12 +36,14 @@
   border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
   transition: var(--transition);
 }
 
 .webinar-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
 }
 
 .webinar-header {
@@ -50,14 +55,10 @@
   justify-content: space-between;
 }
 
-.webinar-badges {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.webinar-badges { display: flex; flex-direction: column; gap: 8px; }
 
 .live-badge {
-  background: var(--accent-pink);
+  background: var(--primary);
   color: var(--white);
   padding: 4px 10px;
   border-radius: 4px;
@@ -68,8 +69,8 @@
 }
 
 .spots-badge {
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--white);
+  background: rgba(42,157,143,0.15);
+  color: var(--primary-hover);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 10px;
@@ -82,19 +83,17 @@
   font-weight: 800;
   color: var(--text-main);
   position: absolute;
-  bottom: 24px;
-  right: 24px;
+  bottom: 20px; right: 24px;
 }
 
-.webinar-content {
-  padding: 32px;
-}
+.webinar-content { padding: 28px 32px 32px; }
 
 .webinar-topic {
   font-size: 18px;
   margin-bottom: 16px;
   color: var(--text-main);
   line-height: 1.4;
+  font-weight: 600;
 }
 
 .webinar-meta {
@@ -118,13 +117,14 @@
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
+  box-shadow: 0 6px 16px rgba(42,157,143,0.25);
 }
 
 .book-btn:hover {
   background: var(--primary-hover);
+  box-shadow: 0 8px 20px rgba(42,157,143,0.35);
 }
 
 @media (max-width: 768px) {
-  .webinars-top { flex-direction: column; align-items: flex-start; gap: 20px; }
-  .view-all { margin-top: 20px; }
+  .webinars-top { flex-direction: column; align-items: flex-start; }
 }

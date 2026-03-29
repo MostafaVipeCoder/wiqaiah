@@ -11,21 +11,19 @@
   align-items: center;
 }
 
-.offer-details .section-label { color: var(--accent-orange); }
-.offer-details .section-title { color: var(--white); text-align: left; }
+/* left column */
+.offer-details .section-label { color: rgba(255,255,255,0.6); letter-spacing: 3px; }
+.offer-details .section-title { color: var(--white); text-align: left; margin-bottom: 24px; }
+.offer-details .section-title em { color: var(--accent-teal); }
 
 .offer-desc {
-  font-size: 18px;
+  font-size: 17px;
   color: rgba(255,255,255,0.8);
   margin-bottom: 40px;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
-.perks {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.perks { display: flex; flex-direction: column; gap: 16px; }
 
 .perks li {
   display: flex;
@@ -33,22 +31,19 @@
   gap: 12px;
   font-size: 16px;
   font-weight: 500;
+  color: rgba(255,255,255,0.9);
 }
 
-.perks span {
-  color: var(--accent-orange);
-  font-weight: 800;
-}
+.perks span { color: var(--accent-teal); font-weight: 800; }
 
-.offer-card {
-  perspective: 1000px;
-}
+/* right card */
+.offer-card { perspective: 1000px; }
 
 .card-inner {
   background: var(--white);
   padding: 48px;
   border-radius: 24px;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.2);
   color: var(--text-main);
   text-align: center;
 }
@@ -62,13 +57,13 @@
 }
 
 .current-price {
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 800;
   color: var(--primary);
 }
 
 .original-price {
-  font-size: 24px;
+  font-size: 22px;
   text-decoration: line-through;
   color: var(--text-muted);
 }
@@ -76,8 +71,8 @@
 .price-note {
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent-pink);
-  margin-bottom: 32px;
+  color: var(--primary-light);
+  margin-bottom: 36px;
 }
 
 .book-session-btn {
@@ -88,14 +83,14 @@
   border-radius: 12px;
   font-weight: 700;
   font-size: 18px;
-  margin-bottom: 24px;
-  box-shadow: 0 10px 24px rgba(77, 112, 251, 0.3);
+  margin-bottom: 20px;
+  box-shadow: 0 10px 24px rgba(42,157,143,0.3);
 }
 
 .book-session-btn:hover {
   background: var(--primary-hover);
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(77, 112, 251, 0.4);
+  box-shadow: 0 14px 32px rgba(42,157,143,0.4);
 }
 
 .guarantee {

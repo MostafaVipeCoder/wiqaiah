@@ -1,7 +1,5 @@
 /* FAQ Styles */
-.faq-section {
-  background: var(--bg-pure);
-}
+.faq-section { background: var(--bg-pure); }
 
 .q-grid {
   display: grid;
@@ -28,8 +26,7 @@
 }
 
 .q-icon {
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   background: var(--primary);
   color: var(--white);
   border-radius: 50%;
@@ -38,6 +35,7 @@
   justify-content: center;
   font-weight: 700;
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .q-card p {
