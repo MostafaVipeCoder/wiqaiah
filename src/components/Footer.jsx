@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="container footer-content">
 
         <div className="footer-brand">
-          <img src="/logo.svg" alt="Wiqaiah" className="footer-logo-img" />
+          <img src="logo.svg" alt="Wiqaiah" className="footer-logo-img" />
           <p className="footer-motto">Medical-grade clarity, from home.</p>
         </div>
 

@@ -44,7 +44,7 @@ const DashboardLayout = () => {
     <div className="dashboard-wrapper">
       <aside className="dashboard-sidebar">
         <div className="sidebar-header">
-          <img src="/logo.svg" alt="Wiqaiah" className="sidebar-logo" />
+          <img src="logo.svg" alt="Wiqaiah" className="sidebar-logo" />
           <span className="badge-admin">ADMIN</span>
         </div>
         

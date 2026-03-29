@@ -31,7 +31,7 @@ const LoginPage = () => {
   return (
     <div className="login-page container section-padding">
       <div className="login-card animate-fade-up">
-        <img src="/logo.svg" alt="Wiqaiah" className="login-logo" />
+        <img src="logo.svg" alt="Wiqaiah" className="login-logo" />
         <h2>{i18n.language === 'ar' ? 'دخول الطبيب' : 'Doctor Login'}</h2>
         <p>{i18n.language === 'ar' ? 'قم بتسجيل الدخول لإدارة حجوزاتك والويبنارز.' : 'Login to manage your bookings and webinars.'}</p>
         
