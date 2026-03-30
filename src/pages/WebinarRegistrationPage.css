@@ -153,3 +153,18 @@
 @media (max-width: 600px) {
   .reg-form-card { padding: 32px 24px; }
 }
+
+.full-capacity-notice {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--bg-soft);
+  border-radius: 12px;
+  border: 1px dashed var(--brand-primary);
+}
+
+.full-capacity-notice p {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--brand-dark);
+  margin-bottom: 24px;
+}

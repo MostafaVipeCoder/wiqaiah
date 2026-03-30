@@ -6,11 +6,21 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isInitialized = React.useRef(false);
 
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     // Get session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Auth check error:', error.message);
+      }
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch(err => {
+      console.warn('Network issue during auth check:', err.message);
       setLoading(false);
     });
 
@@ -20,7 +30,9 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = (email, password) => supabase.auth.signInWithPassword({ email, password });

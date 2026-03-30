@@ -104,7 +104,7 @@
 .status-pill.available { background: #DCFCE7; color: #166534; }
 .status-pill.booked { background: #FEF3C7; color: #92400E; }
 .status-pill.pending { background: #DBEAFE; color: #1E40AF; }
-.status-pill.accepted { background: #DCFCE7; color: #166534; }
+.status-pill.accepted, .status-pill.approved { background: #DCFCE7; color: #166534; }
 .status-pill.rejected { background: #FEE2E2; color: #991B1B; }
 .status-pill.published { background: #DCFCE7; color: #166534; }
 .status-pill.draft { background: #F1F5F9; color: #64748B; }
@@ -119,18 +119,105 @@
 .delete-btn { background: #FEE2E2; color: #DC2626; border: none; }
 .edit-btn { background: rgba(36, 188, 171, 0.1); color: var(--brand-primary); }
 
-.add-slot-form .form-row { display: flex; gap: 20px; align-items: flex-end; }
-.add-btn { height: 50px; padding: 0 30px; }
-
-.webinar-form .form-grid, .settings-form .form-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+/* Dashboard Forms & Inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 5px;
+  text-align: left;
 }
+
+[dir="rtl"] .input-group { text-align: right; }
+
+.input-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-group input, 
+.input-group select, 
+.input-group textarea {
+  padding: 14px 16px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text-main);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+/* Date/Time specifics for better look */
+.input-group input[type="date"],
+.input-group input[type="time"],
+.input-group input[type="datetime-local"] {
+  min-height: 50px;
+  cursor: pointer;
+}
+
+.input-group input:focus, 
+.input-group select:focus, 
+.input-group textarea:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px rgba(36, 188, 171, 0.1);
+  background: #fff;
+}
+
+.input-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.checkbox-row {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--brand-primary);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
 .full-width { grid-column: 1 / -1; }
-.checkbox-row { flex-direction: row; gap: 12px; align-items: center; }
+
+.dashboard-form-footer {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+/* Validation Style */
+.status-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+}
+.status-message.success { background: #DCFCE7; color: #166534; }
+.status-message.error { background: #FEE2E2; color: #991B1B; }
 
 @media (max-width: 900px) {
   .dashboard-sidebar { width: 80px; }
   .dashboard-header { padding: 0 20px; }
   .dashboard-content { padding: 20px; }
+  .form-grid { grid-template-columns: 1fr; }
   .add-slot-form .form-row { flex-direction: column; align-items: stretch; }
 }

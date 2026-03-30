@@ -18,11 +18,35 @@ const ManageWebinars = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('webinars')
-      .select('*')
-      .order('start_time', { ascending: false });
+      .select('*, webinar_registrations(count)')
+      .order('created_at', { ascending: false });
 
     if (!error) setWebinars(data || []);
     setLoading(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `covers/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('webinar-covers')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      alert('Error uploading image');
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('webinar-covers')
+      .getPublicUrl(filePath);
+
+    setFormData({ ...formData, cover_url: publicUrl });
   };
 
   const fetchRegistrations = async (webinarId) => {
@@ -37,7 +61,7 @@ const ManageWebinars = () => {
 
   const [formData, setFormData] = useState({
     title: '', title_ar: '', description: '', description_ar: '',
-    start_time: '', price: 9, is_published: true, form_fields: [
+    start_time: '', price: 9, is_published: true, capacity: 50, cover_url: '', form_fields: [
        { name: 'name', label_en: 'Name', label_ar: 'الاسم', type: 'text', required: true },
        { name: 'email', label_en: 'Email', label_ar: 'البريد الإلكتروني', type: 'email', required: true }
     ]
@@ -45,15 +69,34 @@ const ManageWebinars = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Process form data for database
+    const payload = {
+      ...formData,
+      price: Number(formData.price),
+      end_time: formData.end_time || (formData.start_time ? new Date(new Date(formData.start_time).getTime() + 60 * 60 * 1000).toISOString() : null)
+    };
+
     const action = editingWebinar ? 'update' : 'insert';
     let query = supabase.from('webinars');
 
     if (editingWebinar) {
-       const { error } = await query.update(formData).eq('id', editingWebinar.id);
+       const { error } = await query.update(payload).eq('id', editingWebinar.id);
        if (!error) { setEditingWebinar(null); setShowAddForm(false); fetchWebinars(); }
     } else {
-       const { error } = await query.insert([formData]);
+       const { error } = await query.insert([payload]);
        if (!error) { setShowAddForm(false); fetchWebinars(); }
+    }
+  };
+
+  const updateRegistrationStatus = async (regId, newStatus) => {
+    const { error } = await supabase
+      .from('webinar_registrations')
+      .update({ status: newStatus })
+      .eq('id', regId);
+
+    if (!error) {
+       setRegistrations(prev => prev.map(r => r.id === regId ? { ...r, status: newStatus } : r));
     }
   };
 
@@ -75,8 +118,8 @@ const ManageWebinars = () => {
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
-                  <th>Registered At</th>
-                  <th>Custom Data</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -84,8 +127,27 @@ const ManageWebinars = () => {
                   <tr key={reg.id}>
                     <td>{reg.name}</td>
                     <td>{reg.email}</td>
-                    <td>{new Date(reg.created_at).toLocaleString()}</td>
-                    <td><pre style={{ fontSize: '10px' }}>{JSON.stringify(reg.registration_data, null, 2)}</pre></td>
+                    <td><span className={`status-pill ${reg.status}`}>{reg.status}</span></td>
+                    <td>
+                      <div className="action-btns">
+                        <button 
+                          onClick={() => updateRegistrationStatus(reg.id, 'approved')} 
+                          className="confirm-btn" 
+                          title="Approve"
+                          disabled={reg.status === 'approved'}
+                        >
+                          <Plus size={14} />
+                        </button>
+                        <button 
+                          onClick={() => updateRegistrationStatus(reg.id, 'rejected')} 
+                          className="delete-btn" 
+                          title="Reject"
+                          disabled={reg.status === 'rejected'}
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -128,10 +190,19 @@ const ManageWebinars = () => {
                  <label>Start Date & Time</label>
                  <input type="datetime-local" required value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} />
                </div>
-               <div className="input-group">
-                 <label>Price ($)</label>
-                 <input type="number" step="0.01" required value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
-               </div>
+                <div className="input-group">
+                  <label>Price ($)</label>
+                  <input type="number" step="0.01" required value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>Capacity (Seats)</label>
+                  <input type="number" required value={formData.capacity} onChange={e => setFormData({...formData, capacity: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>Webinar Cover Image</label>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} />
+                  {formData.cover_url && <img src={formData.cover_url} alt="Cover Preview" style={{ width: '100px', marginTop: '10px', borderRadius: '8px' }} />}
+                </div>
                <div className="input-group checkbox">
                  <label><input type="checkbox" checked={formData.is_published} onChange={e => setFormData({...formData, is_published: e.target.checked})} /> Published</label>
                </div>
@@ -154,6 +225,7 @@ const ManageWebinars = () => {
                   <th>Date</th>
                   <th>Price</th>
                   <th>Status</th>
+                  <th>Registrants</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -167,6 +239,7 @@ const ManageWebinars = () => {
                     <td>{new Date(w.start_time).toLocaleString()}</td>
                     <td>${w.price}</td>
                     <td><span className={`status-pill ${w.is_published ? 'published' : 'draft'}`}>{w.is_published ? 'Published' : 'Draft'}</span></td>
+                    <td><strong>{w.webinar_registrations?.[0]?.count || 0}</strong> / {w.capacity || 50}</td>
                     <td>
                       <div className="action-btns">
                         <button onClick={() => fetchRegistrations(w.id)} className="confirm-btn" title="View Registrations"><Users size={16} /></button>

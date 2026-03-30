@@ -9,14 +9,24 @@ const WebinarCard = ({ webinar }) => {
   const { i18n } = useTranslation();
   const title = i18n.language === 'ar' ? webinar.title_ar || webinar.title : webinar.title;
   
+  const approvedCount = webinar.webinar_registrations?.filter(r => r.status === 'approved').length || 0;
+  const capacity = webinar.capacity || 50;
+  const isFull = approvedCount >= capacity;
+  
   return (
-    <div className="webinar-card">
-      <div className="webinar-header" style={{ background: 'linear-gradient(135deg, var(--primary-pale), var(--bg-soft))' }}>
+    <div className={`webinar-card ${isFull ? 'full' : ''}`}>
+      <div className="webinar-header" style={{ 
+        background: webinar.cover_url ? `url(${webinar.cover_url}) center/cover no-repeat` : 'linear-gradient(135deg, var(--primary-pale), var(--bg-soft))',
+        height: '240px',
+        position: 'relative'
+      }}>
         <div className="webinar-badges">
           <span className="live-badge">LIVE · DR. MUHAMMAD ELBERBAWI</span>
-          {webinar.is_published && <span className="spots-badge">{i18n.language === 'ar' ? 'سجل الآن' : 'REGISTER NOW'}</span>}
+          <span className="spots-badge">
+             {approvedCount} / {capacity} {i18n.language === 'ar' ? 'مقعد محجوز' : 'SPOTS FILLED'}
+          </span>
         </div>
-        <div className="webinar-price">${webinar.price || 9}</div>
+        {!webinar.cover_url && <div className="webinar-price">${webinar.price || 9}</div>}
       </div>
       <div className="webinar-content">
         <h3 className="webinar-topic">{title}</h3>
@@ -24,8 +34,10 @@ const WebinarCard = ({ webinar }) => {
           <span className="meta-item"><Calendar size={14} /> {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}</span>
           <span className="meta-item"><Clock size={14} /> {new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 60 min</span>
         </div>
-        <Link to={`/register/${webinar.id}`} className="book-btn">
-          {i18n.language === 'ar' ? 'اشترك في هذه الجلسة' : 'Book This Session'}
+        <Link to={`/register/${webinar.id}`} className={`book-btn ${isFull ? 'disabled' : ''}`}>
+          {isFull 
+            ? (i18n.language === 'ar' ? 'اكتمل العدد' : 'Fully Booked')
+            : (i18n.language === 'ar' ? 'اشترك في هذه الجلسة' : 'Book This Session')}
         </Link>
       </div>
     </div>
@@ -41,7 +53,7 @@ const Webinars = () => {
     const fetchWebinars = async () => {
       const { data, error } = await supabase
         .from('webinars')
-        .select('*')
+        .select('*, webinar_registrations(status)')
         .eq('is_published', true)
         .order('start_time', { ascending: true });
 

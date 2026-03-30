@@ -51,9 +51,9 @@ const ManageAvailability = () => {
       <div className="dashboard-card mb-4">
         <h3 className="section-title-dash"><Plus size={18} /> Add New Slot</h3>
         <form onSubmit={handleAddSlot} className="add-slot-form">
-          <div className="form-row">
+          <div className="form-grid">
             <div className="input-group">
-              <label>Date</label>
+              <label><CalIcon size={14} /> Date</label>
               <input 
                 type="date" required 
                 value={newSlot.date}
@@ -61,7 +61,7 @@ const ManageAvailability = () => {
               />
             </div>
             <div className="input-group">
-              <label>Start Time</label>
+              <label><Clock size={14} /> Start Time</label>
               <input 
                 type="time" required 
                 value={newSlot.start_time}
@@ -69,14 +69,16 @@ const ManageAvailability = () => {
               />
             </div>
             <div className="input-group">
-              <label>End Time</label>
+              <label><Clock size={14} /> End Time</label>
               <input 
                 type="time" required 
                 value={newSlot.end_time}
                 onChange={e => setNewSlot({...newSlot, end_time: e.target.value})}
               />
             </div>
-            <button type="submit" className="primary-btn add-btn">Add Slot</button>
+            <div className="input-group" style={{ justifyContent: 'flex-end' }}>
+               <button type="submit" className="primary-btn add-btn">Add Slot</button>
+            </div>
           </div>
         </form>
       </div>

@@ -21,7 +21,7 @@ const WebinarRegistrationPage = () => {
   const fetchWebinar = async () => {
     const { data, error } = await supabase
       .from('webinars')
-      .select('*')
+      .select('*, webinar_registrations(status)')
       .eq('id', webinarId)
       .single();
 
@@ -82,10 +82,24 @@ const WebinarRegistrationPage = () => {
   return (
     <div className="webinar-reg-page container section-padding">
       <div className="reg-header">
-        <Link to="/" className="back-link"><ChevronLeft size={16} /> {i18n.language === 'ar' ? 'رجوع' : 'Back'}</Link>
+        <Link to="/" className="back-link">
+           <ArrowLeft size={16} /> 
+           {i18n.language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}
+        </Link>
+        
+        {webinar.cover_url && (
+          <div className="reg-hero-cover" style={{ 
+            width: '100%', 
+            height: '300px', 
+            background: `url(${webinar.cover_url}) center/cover no-repeat`,
+            borderRadius: '24px',
+            marginBottom: '32px'
+          }} />
+        )}
+
         <h1>{title}</h1>
         <div className="reg-meta">
-          <span className="meta-item"><Calendar size={18} /> {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}</span>
+          <span className="meta-item"><Calendar size={18} /> {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
           <span className="meta-item"><Clock size={18} /> {new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 60 min</span>
         </div>
       </div>
@@ -103,46 +117,63 @@ const WebinarRegistrationPage = () => {
 
         <div className="reg-form-card">
           <h3>{i18n.language === 'ar' ? 'سجل بياناتك' : 'Register Now'}</h3>
-          <form onSubmit={handleRegister} className="reg-form">
-            {/* Hardcoded Name/Email first for basic data */}
-            <div className="input-group">
-               <label>{i18n.language === 'ar' ? 'الاسم بالكامل' : 'Full Name'}</label>
-               <input 
-                 type="text" required 
-                 value={formData.name || ''}
-                 onChange={e => setFormData({...formData, name: e.target.value})}
-               />
-            </div>
-            <div className="input-group">
-               <label>{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</label>
-               <input 
-                 type="email" required 
-                 value={formData.email || ''}
-                 onChange={e => setFormData({...formData, email: e.target.value})}
-               />
-            </div>
+          
+          {(() => {
+            const approvedCount = webinar.webinar_registrations?.filter(r => r.status === 'approved').length || 0;
+            const isFull = approvedCount >= (webinar.capacity || 50);
 
-            {/* Dynamic fields from database */}
-            {webinar.form_fields && webinar.form_fields.map((field, idx) => {
-              if (field.name === 'name' || field.name === 'email') return null; // skip hardcoded
-              const label = i18n.language === 'ar' ? field.label_ar || field.label_en : field.label_en;
+            if (isFull) {
               return (
-                <div className="input-group" key={idx}>
-                  <label>{label}</label>
-                  <input 
-                    type={field.type || "text"} 
-                    required={field.required}
-                    value={formData[field.name] || ''}
-                    onChange={e => setFormData({...formData, [field.name]: e.target.value})}
-                  />
+                <div className="full-capacity-notice">
+                  <p>{i18n.language === 'ar' ? 'عذراً، هذا الويبينار مكتمل حالياً.' : 'Sorry, this webinar is fully booked.'}</p>
+                  <Link to="/" className="secondary-btn">{i18n.language === 'ar' ? 'عرض الويبينارز الأخرى' : 'View Other Webinars'}</Link>
                 </div>
               );
-            })}
+            }
 
-            <button type="submit" className="primary-btn submit-btn">
-              {i18n.language === 'ar' ? 'تأكيد التسجيل والدفع' : 'Register and Continue'}
-            </button>
-          </form>
+            return (
+              <form onSubmit={handleRegister} className="reg-form">
+                {/* Hardcoded Name/Email first for basic data */}
+                <div className="input-group">
+                   <label>{i18n.language === 'ar' ? 'الاسم بالكامل' : 'Full Name'}</label>
+                   <input 
+                     type="text" required 
+                     value={formData.name || ''}
+                     onChange={e => setFormData({...formData, name: e.target.value})}
+                   />
+                </div>
+                <div className="input-group">
+                   <label>{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</label>
+                   <input 
+                     type="email" required 
+                     value={formData.email || ''}
+                     onChange={e => setFormData({...formData, email: e.target.value})}
+                   />
+                </div>
+
+                {/* Dynamic fields from database */}
+                {webinar.form_fields && webinar.form_fields.map((field, idx) => {
+                  if (field.name === 'name' || field.name === 'email') return null; // skip hardcoded
+                  const label = i18n.language === 'ar' ? field.label_ar || field.label_en : field.label_en;
+                  return (
+                    <div className="input-group" key={idx}>
+                      <label>{label}</label>
+                      <input 
+                        type={field.type || "text"} 
+                        required={field.required}
+                        value={formData[field.name] || ''}
+                        onChange={e => setFormData({...formData, [field.name]: e.target.value})}
+                      />
+                    </div>
+                  );
+                })}
+
+                <button type="submit" className="primary-btn submit-btn">
+                  {i18n.language === 'ar' ? 'تأكيد التسجيل والدفع' : 'Register and Continue'}
+                </button>
+              </form>
+            );
+          })()}
         </div>
       </div>
     </div>
