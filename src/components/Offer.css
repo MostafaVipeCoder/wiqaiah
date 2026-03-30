@@ -1,6 +1,6 @@
 /* Offer Styles */
 .offer-section {
-  background: var(--primary);
+  background: var(--brand-primary);
   color: var(--white);
 }
 
@@ -59,7 +59,7 @@
 .current-price {
   font-size: 52px;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--brand-primary);
 }
 
 .original-price {
@@ -77,20 +77,20 @@
 
 .book-session-btn {
   width: 100%;
-  background: var(--primary);
+  background: var(--brand-primary);
   color: var(--white);
   padding: 20px;
   border-radius: 12px;
   font-weight: 700;
   font-size: 18px;
   margin-bottom: 20px;
-  box-shadow: 0 10px 24px rgba(42,157,143,0.3);
+  box-shadow: 0 10px 24px rgba(36, 188, 171, 0.3);
 }
 
 .book-session-btn:hover {
-  background: var(--primary-hover);
+  background: var(--brand-dark);
   transform: translateY(-3px);
-  box-shadow: 0 14px 32px rgba(42,157,143,0.4);
+  box-shadow: 0 14px 32px rgba(36, 188, 171, 0.4);
 }
 
 .guarantee {

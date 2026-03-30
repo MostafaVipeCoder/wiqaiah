@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { ChevronLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './WebinarRegistrationPage.css';
 
 const WebinarRegistrationPage = () => {
@@ -40,6 +41,8 @@ const WebinarRegistrationPage = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    const loadingToast = toast.loading(i18n.language === 'ar' ? 'جاري التسجيل...' : 'Registering...');
+    
     const { error } = await supabase
       .from('webinar_registrations')
       .insert([{
@@ -49,7 +52,12 @@ const WebinarRegistrationPage = () => {
         email: formData.email || formData.Email || ''
       }]);
 
-    if (!error) setSubmitted(true);
+    if (!error) {
+      toast.success(i18n.language === 'ar' ? 'تم التسجيل بنجاح!' : 'Registration successful!', { id: loadingToast });
+      setSubmitted(true);
+    } else {
+      toast.error(i18n.language === 'ar' ? 'حدث خطأ أثناء التسجيل. يرجى المحاولة لاحقاً.' : 'Failed to register. Please try again.', { id: loadingToast });
+    }
   };
 
   if (loading) return <div className="section-padding container"><h3>{t('common.loading')}</h3></div>;
@@ -62,7 +70,7 @@ const WebinarRegistrationPage = () => {
     return (
       <div className="registration-status-page container section-padding">
         <div className="status-card">
-          <CheckCircle size={64} color="var(--primary)" />
+          <CheckCircle size={64} color="var(--brand-primary)" />
           <h2>{i18n.language === 'ar' ? 'تم التسجيل بنجاح!' : 'Registration Successful!'}</h2>
           <p>{i18n.language === 'ar' ? 'شكراً لك. سيصلك رابط الحضور وتفاصيل الويبينار عبر البريد الإلكتروني قريباً.' : 'Thank you for registering. You will receive the meeting link and details via email soon.'}</p>
           <Link to="/" className="primary-btn">{i18n.language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}</Link>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { Calendar, Clock, CheckCircle, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import './BookingPage.css';
 
 const BookingPage = () => {
@@ -35,6 +36,8 @@ const BookingPage = () => {
     e.preventDefault();
     if (!selectedSlot) return;
 
+    const loadingToast = toast.loading(i18n.language === 'ar' ? 'جاري إرسال طلبك...' : 'Sending request...');
+
     const { error } = await supabase
       .from('bookings')
       .insert([{
@@ -46,11 +49,11 @@ const BookingPage = () => {
       }]);
 
     if (!error) {
-      // Mark slot as pending/booked (or wait for doctor approval)
-      // Usually we mark as booked once approved, but for UX we can show success
+      toast.success(i18n.language === 'ar' ? 'تم إرسال طلب الحجز بنجاح!' : 'Booking request sent successfully!', { id: loadingToast });
       setSubmitted(true);
-      // Optionally update slot to 'is_booked' if you want real-time reservation
       await supabase.from('availability').update({ is_booked: true }).eq('id', selectedSlot.id);
+    } else {
+      toast.error(i18n.language === 'ar' ? 'حدث خطأ. يرجى المحاولة لاحقاً.' : 'An error occurred. Please try again.', { id: loadingToast });
     }
   };
 
@@ -58,7 +61,7 @@ const BookingPage = () => {
     return (
       <div className="booking-status-page container section-padding">
         <div className="status-card">
-          <CheckCircle size={64} color="var(--primary)" />
+          <CheckCircle size={64} color="var(--brand-primary)" />
           <h2>{i18n.language === 'ar' ? 'تم استلام طلبك!' : 'Request Sent!'}</h2>
           <p>{i18n.language === 'ar' ? 'شكراً لك. سيقوم الدكتور بمراجعة الطلب وسيصلك إيميل بالتفاصيل قريباً.' : 'Thank you. Dr. Muhammad will review your request and you will receive an email confirmation soon.'}</p>
           <Link to="/" className="primary-btn">{i18n.language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}</Link>

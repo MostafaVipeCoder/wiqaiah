@@ -1,5 +1,5 @@
 /* Webinars Styles */
-.webinars-section { background: var(--bg-soft); }
+.webinars-section { background: rgba(18, 97, 88, 0.05); }
 
 .webinars-top {
   display: flex;
@@ -17,9 +17,9 @@
 
 .view-all {
   font-weight: 700;
-  color: var(--primary);
+  color: var(--brand-primary);
   font-size: 14px;
-  border-bottom: 1px solid var(--primary);
+  border-bottom: 1px solid var(--brand-primary);
   padding-bottom: 2px;
   white-space: nowrap;
 }
@@ -43,7 +43,7 @@
 .webinar-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
+  border-color: var(--brand-primary);
 }
 
 .webinar-header {
@@ -58,7 +58,7 @@
 .webinar-badges { display: flex; flex-direction: column; gap: 8px; }
 
 .live-badge {
-  background: var(--primary);
+  background: var(--brand-primary);
   color: var(--white);
   padding: 4px 10px;
   border-radius: 4px;
@@ -69,8 +69,8 @@
 }
 
 .spots-badge {
-  background: rgba(42,157,143,0.15);
-  color: var(--primary-hover);
+  background: rgba(36, 188, 171, 0.15);
+  color: var(--brand-dark);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 10px;
@@ -111,18 +111,18 @@
 
 .book-btn {
   width: 100%;
-  background: var(--primary);
+  background: var(--brand-primary);
   color: var(--white);
   padding: 14px;
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
-  box-shadow: 0 6px 16px rgba(42,157,143,0.25);
+  box-shadow: 0 6px 16px rgba(36, 188, 171, 0.25);
 }
 
 .book-btn:hover {
-  background: var(--primary-hover);
-  box-shadow: 0 8px 20px rgba(42,157,143,0.35);
+  background: var(--brand-dark);
+  box-shadow: 0 8px 20px rgba(36, 188, 171, 0.35);
 }
 
 @media (max-width: 768px) {

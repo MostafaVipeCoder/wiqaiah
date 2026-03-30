@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -19,10 +20,17 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const { error } = await login(email, password);
-    if (error) {
-      setError(i18n.language === 'ar' ? 'خطأ في الدخول. تأكد من البيانات.' : 'Login failed. Check your credentials.');
-    } else {
+    
+    const loginPromise = login(email, password);
+    
+    toast.promise(loginPromise, {
+      loading: i18n.language === 'ar' ? 'جاري الدخول...' : 'Logging in...',
+      success: i18n.language === 'ar' ? 'تم الدخول بنجاح!' : 'Login successful!',
+      error: i18n.language === 'ar' ? 'خطأ في الدخول. تأكد من البيانات.' : 'Login failed. Check your credentials.',
+    });
+
+    const { error } = await loginPromise;
+    if (!error) {
       navigate('/dashboard');
     }
     setLoading(false);
@@ -36,7 +44,6 @@ const LoginPage = () => {
         <p>{i18n.language === 'ar' ? 'قم بتسجيل الدخول لإدارة حجوزاتك والويبنارز.' : 'Login to manage your bookings and webinars.'}</p>
         
         <form onSubmit={handleLogin} className="login-form">
-          {error && <div className="error-msg">{error}</div>}
           <div className="input-group">
             <label>{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</label>
             <input 

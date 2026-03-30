@@ -1,5 +1,5 @@
 /* FAQ Styles */
-.faq-section { background: var(--bg-pure); }
+.faq-section { background: var(--brand-bg); }
 
 .q-grid {
   display: grid;
@@ -8,7 +8,7 @@
 }
 
 .q-card {
-  background: var(--bg-soft);
+  background: rgba(18, 97, 88, 0.05);
   border: 1px solid var(--border);
   padding: 32px;
   border-radius: 16px;
@@ -20,14 +20,14 @@
 
 .q-card:hover {
   background: var(--white);
-  border-color: var(--primary);
+  border-color: var(--brand-primary);
   box-shadow: var(--shadow-md);
   transform: translateY(-5px);
 }
 
 .q-icon {
   width: 32px; height: 32px;
-  background: var(--primary);
+  background: var(--brand-primary);
   color: var(--white);
   border-radius: 50%;
   display: flex;
@@ -39,10 +39,9 @@
 }
 
 .q-card p {
-  font-family: 'Lora', serif;
+  font-family: inherit;
   font-size: 16px;
   font-weight: 500;
   color: var(--text-main);
   line-height: 1.5;
-  font-style: italic;
 }

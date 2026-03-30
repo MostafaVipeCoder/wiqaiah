@@ -1,6 +1,6 @@
 /* PainPoints Styles */
 .pain-section {
-  background: var(--text-main);
+  background: var(--brand-dark);
   padding: 120px 0;
   color: var(--white);
   text-align: center;
@@ -9,7 +9,7 @@
 .pain-label {
   font-size: 13px;
   font-weight: 700;
-  color: var(--accent-teal);
+  color: var(--brand-primary);
   letter-spacing: 3px;
   margin-bottom: 24px;
 }
@@ -20,7 +20,7 @@
   color: var(--white);
 }
 
-.pain-title em { color: var(--primary-light); }
+.pain-title em { color: var(--brand-primary); }
 
 .pain-list {
   max-width: 800px;
@@ -36,18 +36,18 @@
   align-items: flex-start;
   gap: 20px;
   padding: 24px;
-  background: rgba(42, 157, 143, 0.08);
+  background: rgba(36, 188, 171, 0.08);
   border-radius: 12px;
-  border-left: 4px solid var(--primary);
+  border-left: 4px solid var(--brand-primary);
   transition: var(--transition);
 }
 
 .pain-item:hover {
-  background: rgba(42, 157, 143, 0.14);
+  background: rgba(36, 188, 171, 0.14);
 }
 
 .pain-item .strike {
-  color: var(--primary-light);
+  color: var(--brand-primary);
   font-weight: 800;
   font-size: 20px;
   flex-shrink: 0;
@@ -65,7 +65,7 @@
   line-height: 1.4;
 }
 
-.pain-punchline em { color: var(--primary-light); }
+.pain-punchline em { color: var(--brand-primary); }
 
 @media (max-width: 768px) {
   .pain-item p { font-size: 15px; }

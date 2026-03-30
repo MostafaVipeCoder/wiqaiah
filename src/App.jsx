@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LoadingSpinner from './components/LoadingSpinner'
+import { Toaster } from 'react-hot-toast'
 import './App.css'
 
 // LAZY LOAD PAGES
@@ -16,6 +17,26 @@ const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 function App() {
   return (
     <div className="app-container">
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: 'var(--brand-dark)',
+            color: 'var(--white)',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: '600',
+            border: '1px solid rgba(255,255,255,0.1)',
+            padding: '12px 24px',
+          },
+          success: {
+            iconTheme: {
+              primary: 'var(--brand-primary)',
+              secondary: 'var(--white)',
+            },
+          },
+        }}
+      />
       <Suspense fallback={<div className="section-padding"><LoadingSpinner /></div>}>
         <Routes>
           {/* PUBLIC ROUTES */}
