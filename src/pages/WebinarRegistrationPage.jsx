@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
-import { ChevronLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ArrowLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import './WebinarRegistrationPage.css';
 
