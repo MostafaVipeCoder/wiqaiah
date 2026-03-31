@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import './Hero.css';
 
@@ -47,7 +48,7 @@ const Hero = () => {
           <p className="hero-subtext" dangerouslySetInnerHTML={{ __html: t('hero.subtitle') }} />
 
           <div className="hero-actions">
-            <a href="/book" className="primary-btn">{t('hero.book_btn')}</a>
+            <Link to="/book" className="primary-btn">{t('hero.book_btn')}</Link>
             <div className="price-tag">
               <span className="price">${currentPrice}</span>
               {settings.show_discount && (

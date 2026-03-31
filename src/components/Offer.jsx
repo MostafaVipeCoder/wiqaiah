@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Offer.css';
 
 const Offer = () => {
+  const navigate = useNavigate();
   return (
     <section id="book" className="offer-section section-padding">
       <div className="container">
@@ -26,7 +28,7 @@ const Offer = () => {
                   <span className="original-price">$15.00</span>
                 </div>
                 <p className="price-note">10% off your first consultation</p>
-                <button className="book-session-btn">Book My Session →</button>
+                <button onClick={() => navigate('/book')} className="book-session-btn">Book My Session →</button>
                 <div className="guarantee">
                    <span>🛡️</span> 100% Satisfaction Guarantee
                 </div>

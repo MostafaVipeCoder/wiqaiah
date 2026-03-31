@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Globe, Menu, X } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
   const location = useLocation();
 
@@ -27,22 +28,22 @@ const Navbar = () => {
           <img src="logo.svg" alt="Wiqaiah" className="nav-logo-img" />
         </Link>
 
-        <div className="nav-links">
-          {location.pathname === '/' && (
-            <>
-              <a href="#how" className="nav-link">{t('nav.process')}</a>
-              <a href="#questions" className="nav-link">{t('nav.faq')}</a>
-              <a href="#sessions" className="nav-link">{t('nav.sessions')}</a>
-            </>
-          )}
+        <div className={`nav-links ${menuOpen ? 'mobile-open' : ''}`}>
+          <a href={location.pathname === '/' ? '#how' : '/#how'} onClick={() => setMenuOpen(false)} className="nav-link">{t('nav.process')}</a>
+          <a href={location.pathname === '/' ? '#questions' : '/#questions'} onClick={() => setMenuOpen(false)} className="nav-link">{t('nav.faq')}</a>
+          <a href={location.pathname === '/' ? '#sessions' : '/#sessions'} onClick={() => setMenuOpen(false)} className="nav-link">{t('nav.sessions')}</a>
           
-          <button onClick={toggleLanguage} className="lang-switcher">
+          <button onClick={() => {toggleLanguage(); setMenuOpen(false);}} className="lang-switcher">
             <Globe size={18} />
             <span>{i18n.language === 'en' ? 'العربية' : 'English'}</span>
           </button>
 
-          <Link to="/book" className="cta-button">{t('nav.book_now')}</Link>
+          <Link to="/book" onClick={() => setMenuOpen(false)} className="cta-button">{t('nav.book_now')}</Link>
         </div>
+
+        <button className="mobile-menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
     </nav>
   );

@@ -75,9 +75,49 @@
 /* RTL support */
 [dir="rtl"] .nav-links { flex-direction: row-reverse; }
 
+.mobile-menu-toggle {
+  display: none;
+  color: var(--brand-dark);
+}
+
 @media (max-width: 900px) {
-  .nav-links { gap: 16px; }
-  .nav-link { display: none; }
+  .nav-links {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--white);
+    flex-direction: column;
+    padding: 40px;
+    gap: 24px;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+  }
+
+  .nav-links.mobile-open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(36, 188, 171, 0.1);
+    border-radius: 8px;
+    color: var(--brand-primary);
+  }
+
+  [dir="rtl"] .nav-links {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 768px) {

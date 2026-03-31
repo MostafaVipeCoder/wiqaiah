@@ -19,24 +19,37 @@ const WebinarRegistrationPage = () => {
   }, [webinarId]);
 
   const fetchWebinar = async () => {
-    const { data, error } = await supabase
-      .from('webinars')
-      .select('*, webinar_registrations(status)')
-      .eq('id', webinarId)
-      .single();
+    try {
+      console.log('Fetching webinar with ID:', webinarId);
+      const { data, error } = await supabase
+        .from('webinars')
+        .select('*, webinar_registrations(status)')
+        .eq('id', webinarId)
+        .maybeSingle();
 
-    if (data && !error) {
-      setWebinar(data);
-      // Initialize dynamic form fields if any
-      const initialForm = {};
-      if (data.form_fields) {
-        data.form_fields.forEach(f => {
-          initialForm[f.name || f.label_en] = '';
-        });
+      if (error) {
+        console.error('Supabase error fetching webinar:', error);
+        toast.error('Error loading webinar details');
+        setLoading(false);
+        return;
       }
-      setFormData(initialForm);
+
+      if (data) {
+        setWebinar(data);
+        // Initialize dynamic form fields if any
+        const initialForm = {};
+        if (data.form_fields && Array.isArray(data.form_fields)) {
+          data.form_fields.forEach(f => {
+            if (f.name) initialForm[f.name] = '';
+          });
+        }
+        setFormData(initialForm);
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRegister = async (e) => {
@@ -87,15 +100,15 @@ const WebinarRegistrationPage = () => {
            {i18n.language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}
         </Link>
         
-        {webinar.cover_url && (
+        {webinar.cover_url || webinar.image_url ? (
           <div className="reg-hero-cover" style={{ 
             width: '100%', 
             height: '300px', 
-            background: `url(${webinar.cover_url}) center/cover no-repeat`,
+            background: `url(${webinar.cover_url || webinar.image_url}) center/cover no-repeat`,
             borderRadius: '24px',
             marginBottom: '32px'
           }} />
-        )}
+        ) : null}
 
         <h1>{title}</h1>
         <div className="reg-meta">

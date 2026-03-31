@@ -5,6 +5,8 @@ import { Check, X, Trash2, Mail, Users } from 'lucide-react';
 const ManageBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sessionLink, setSessionLink] = useState('');
+  const [acceptingId, setAcceptingId] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -28,13 +30,22 @@ const ManageBookings = () => {
     setLoading(false);
   };
 
-  const updateBookingStatus = async (id, status) => {
+  const updateBookingStatus = async (id, status, meetingLink = '') => {
+    const updateData = { status };
+    if (meetingLink) updateData.meeting_link = meetingLink;
+
     const { error } = await supabase
       .from('bookings')
-      .update({ status })
+      .update(updateData)
       .eq('id', id);
 
-    if (!error) fetchBookings();
+    if (!error) {
+      // TODO: Trigger a Supabase Edge Function or Email Service (e.g. Resend) 
+      // to send the updated meeting_link and confirmation_email_template to the user.
+      setAcceptingId(null);
+      setSessionLink('');
+      fetchBookings();
+    }
   };
 
   const deleteBooking = async (id, availability_id) => {
@@ -90,20 +101,49 @@ const ManageBookings = () => {
                     <td>
                       <div className="action-btns">
                         {booking.status === 'pending' && (
-                          <>
-                            <button 
-                              onClick={() => updateBookingStatus(booking.id, 'accepted')} 
-                              className="confirm-btn" title="Confirm"
-                            >
-                              <Check size={16} />
-                            </button>
-                            <button 
-                              onClick={() => updateBookingStatus(booking.id, 'rejected')} 
-                              className="reject-btn" title="Reject"
-                            >
-                              <X size={16} />
-                            </button>
-                          </>
+                          <div className="flex flex-col gap-2">
+                            {acceptingId === booking.id ? (
+                              <div className="accept-dialog animate-fade-in">
+                                <input 
+                                  type="url" 
+                                  placeholder="Zoom/Google Meet Link" 
+                                  className="small-input"
+                                  value={sessionLink}
+                                  onChange={e => setSessionLink(e.target.value)}
+                                  autoFocus 
+                                />
+                                <div className="flex gap-1">
+                                  <button 
+                                    onClick={() => updateBookingStatus(booking.id, 'accepted', sessionLink)} 
+                                    className="confirm-btn-text"
+                                  >
+                                    Accept & Send Link
+                                  </button>
+                                  <button onClick={() => {setAcceptingId(null); setSessionLink('');}} className="cancel-btn-text">Cancel</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="action-btns">
+                                <button 
+                                  onClick={() => setAcceptingId(booking.id)} 
+                                  className="confirm-btn" title="Confirm"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => updateBookingStatus(booking.id, 'rejected')} 
+                                  className="reject-btn" title="Reject"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {booking.status === 'accepted' && booking.meeting_link && (
+                          <div className="link-info-pill">
+                            <Check size={12} /> {booking.meeting_link.length > 20 ? booking.meeting_link.substring(0, 20) + '...' : booking.meeting_link}
+                          </div>
                         )}
                         <button 
                           onClick={() => deleteBooking(booking.id, booking.availability_id)} 

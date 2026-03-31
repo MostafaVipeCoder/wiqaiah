@@ -14,6 +14,14 @@ const ManageWebinars = () => {
     fetchWebinars();
   }, []);
 
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString().slice(0, 16);
+  };
+
   const fetchWebinars = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -42,11 +50,11 @@ const ManageWebinars = () => {
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data } = supabase.storage
       .from('webinar-covers')
       .getPublicUrl(filePath);
 
-    setFormData({ ...formData, cover_url: publicUrl });
+    setFormData({ ...formData, cover_url: data.publicUrl });
   };
 
   const fetchRegistrations = async (webinarId) => {
@@ -61,7 +69,9 @@ const ManageWebinars = () => {
 
   const [formData, setFormData] = useState({
     title: '', title_ar: '', description: '', description_ar: '',
-    start_time: '', price: 9, is_published: true, capacity: 50, cover_url: '', form_fields: [
+    start_time: '', price: 9, is_published: true, capacity: 50, cover_url: '', 
+    meeting_link: '', confirmation_email_content: '',
+    form_fields: [
        { name: 'name', label_en: 'Name', label_ar: 'الاسم', type: 'text', required: true },
        { name: 'email', label_en: 'Email', label_ar: 'البريد الإلكتروني', type: 'email', required: true }
     ]
@@ -186,10 +196,15 @@ const ManageWebinars = () => {
                  <label>Description (Arabic)</label>
                  <textarea value={formData.description_ar} onChange={e => setFormData({...formData, description_ar: e.target.value})} dir="rtl" />
                </div>
-               <div className="input-group">
-                 <label>Start Date & Time</label>
-                 <input type="datetime-local" required value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} />
-               </div>
+                <div className="input-group">
+                  <label>Start Date & Time</label>
+                  <input 
+                    type="datetime-local" 
+                    required 
+                    value={formatDateForInput(formData.start_time)} 
+                    onChange={e => setFormData({...formData, start_time: e.target.value})} 
+                  />
+                </div>
                 <div className="input-group">
                   <label>Price ($)</label>
                   <input type="number" step="0.01" required value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
@@ -202,6 +217,25 @@ const ManageWebinars = () => {
                   <label>Webinar Cover Image</label>
                   <input type="file" accept="image/*" onChange={handleImageUpload} />
                   {formData.cover_url && <img src={formData.cover_url} alt="Cover Preview" style={{ width: '100px', marginTop: '10px', borderRadius: '8px' }} />}
+                </div>
+                <div className="input-group full-width">
+                  <label>Meeting Link (Zoom/Google Meet)</label>
+                  <input 
+                    type="url" 
+                    placeholder="https://zoom.us/j/..." 
+                    value={formData.meeting_link || ''} 
+                    onChange={e => setFormData({...formData, meeting_link: e.target.value})} 
+                  />
+                </div>
+                <div className="input-group full-width">
+                  <label>Confirmation Email Content (Arabic/English)</label>
+                  <textarea 
+                    placeholder="Write the message that will be sent to confirmed attendees..." 
+                    value={formData.confirmation_email_content || ''} 
+                    onChange={e => setFormData({...formData, confirmation_email_content: e.target.value})} 
+                    rows={4}
+                  />
+                  <small className="help-text">This content will be sent automatically when a registration is approved.</small>
                 </div>
                <div className="input-group checkbox">
                  <label><input type="checkbox" checked={formData.is_published} onChange={e => setFormData({...formData, is_published: e.target.checked})} /> Published</label>
@@ -243,7 +277,14 @@ const ManageWebinars = () => {
                     <td>
                       <div className="action-btns">
                         <button onClick={() => fetchRegistrations(w.id)} className="confirm-btn" title="View Registrations"><Users size={16} /></button>
-                        <button onClick={() => { setEditingWebinar(w); setFormData(w); setShowAddForm(true); }} className="edit-btn" title="Edit"><Edit2 size={16} /></button>
+                        <button onClick={() => { 
+                          setEditingWebinar(w); 
+                          setFormData({
+                            ...w,
+                            start_time: formatDateForInput(w.start_time)
+                          }); 
+                          setShowAddForm(true); 
+                        }} className="edit-btn" title="Edit"><Edit2 size={16} /></button>
                         <button onClick={() => deleteWebinar(w.id)} className="delete-btn" title="Delete"><Trash2 size={16} /></button>
                       </div>
                     </td>

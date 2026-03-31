@@ -6,6 +6,7 @@ const ManageAvailability = () => {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newSlot, setNewSlot] = useState({ date: '', start_time: '', end_time: '' });
+  const [isRecurring, setIsRecurring] = useState(false);
 
   useEffect(() => {
     fetchSlots();
@@ -27,12 +28,31 @@ const ManageAvailability = () => {
     e.preventDefault();
     if (!newSlot.date || !newSlot.start_time || !newSlot.end_time) return;
 
+    const slotsToAdd = [];
+    
+    if (isRecurring) {
+      // Generate 8 weeks of slots
+      const startDate = new Date(newSlot.date);
+      for (let i = 0; i < 8; i++) {
+        const recurringDate = new Date(startDate);
+        recurringDate.setDate(startDate.getDate() + (i * 7));
+        slotsToAdd.push({
+          date: recurringDate.toISOString().split('T')[0],
+          start_time: newSlot.start_time,
+          end_time: newSlot.end_time
+        });
+      }
+    } else {
+      slotsToAdd.push(newSlot);
+    }
+
     const { error } = await supabase
       .from('availability')
-      .insert([newSlot]);
+      .insert(slotsToAdd);
 
     if (!error) {
       setNewSlot({ date: '', start_time: '', end_time: '' });
+      setIsRecurring(false);
       fetchSlots();
     }
   };
@@ -76,8 +96,16 @@ const ManageAvailability = () => {
                 onChange={e => setNewSlot({...newSlot, end_time: e.target.value})}
               />
             </div>
+            <div className="input-group checkbox-row mt-2" style={{ gridColumn: 'span 2' }}>
+               <input 
+                 type="checkbox" id="recurring"
+                 checked={isRecurring}
+                 onChange={e => setIsRecurring(e.target.checked)}
+               />
+               <label htmlFor="recurring">Repeat weekly for 8 weeks</label>
+            </div>
             <div className="input-group" style={{ justifyContent: 'flex-end' }}>
-               <button type="submit" className="primary-btn add-btn">Add Slot</button>
+               <button type="submit" className="primary-btn add-btn">Add Slot{isRecurring ? 's' : ''}</button>
             </div>
           </div>
         </form>

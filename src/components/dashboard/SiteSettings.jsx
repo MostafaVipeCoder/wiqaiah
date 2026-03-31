@@ -8,7 +8,9 @@ const SiteSettings = () => {
     discount_percentage: 10,
     show_discount: true,
     discount_text_en: '',
-    discount_text_ar: ''
+    discount_text_ar: '',
+    booking_confirmation_email: '',
+    webinar_confirmation_email_default: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -103,6 +105,27 @@ const SiteSettings = () => {
                 onChange={e => setSettings({...settings, discount_text_ar: e.target.value})}
                 dir="rtl"
                 placeholder="مثلاً: خصم 10% على أول جلسة"
+              />
+            </div>
+
+            <div className="input-group full-width mt-4">
+              <label>Booking Confirmation Email Template (Arabic/English)</label>
+              <textarea 
+                value={settings.booking_confirmation_email || ''} 
+                onChange={e => setSettings({...settings, booking_confirmation_email: e.target.value})} 
+                placeholder="Write the email content for individual consulting sessions..."
+                rows={5}
+              />
+              <small className="help-text">This content will be sent when you accept a consulting session request.</small>
+            </div>
+
+            <div className="input-group full-width">
+              <label>Default Webinar Confirmation Email</label>
+              <textarea 
+                value={settings.webinar_confirmation_email_default || ''} 
+                onChange={e => setSettings({...settings, webinar_confirmation_email_default: e.target.value})} 
+                placeholder="Default message for new webinars..."
+                rows={5}
               />
             </div>
           </div>
