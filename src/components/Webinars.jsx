@@ -6,7 +6,7 @@ import { Calendar, Clock, MapPin } from 'lucide-react';
 import './Webinars.css';
 
 const WebinarCard = ({ webinar }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const title = i18n.language === 'ar' ? webinar.title_ar || webinar.title : webinar.title;
   
   const approvedCount = webinar.webinar_registrations?.filter(r => r.status === 'approved').length || 0;
@@ -21,9 +21,9 @@ const WebinarCard = ({ webinar }) => {
         position: 'relative'
       }}>
         <div className="webinar-badges">
-          <span className="live-badge">LIVE · DR. MUHAMMAD ELBERBAWI</span>
+          <span className="live-badge">{t('webinars_section.badge')}</span>
           <span className="spots-badge">
-             {approvedCount} / {capacity} {i18n.language === 'ar' ? 'مقعد محجوز' : 'SPOTS FILLED'}
+             {approvedCount} / {capacity} {t('webinars_section.spots_filled')}
           </span>
         </div>
         {!webinar.cover_url && <div className="webinar-price">${webinar.price || 9}</div>}
@@ -36,8 +36,8 @@ const WebinarCard = ({ webinar }) => {
         </div>
         <Link to={`/register/${webinar.id}`} className={`book-btn ${isFull ? 'disabled' : ''}`}>
           {isFull 
-            ? (i18n.language === 'ar' ? 'اكتمل العدد' : 'Fully Booked')
-            : (i18n.language === 'ar' ? 'اشترك في هذه الجلسة' : 'Book This Session')}
+            ? t('webinars_section.fully_booked')
+            : t('webinars_section.book_btn')}
         </Link>
       </div>
     </div>
@@ -70,19 +70,18 @@ const Webinars = () => {
       <div className="container">
         <div className="webinars-top">
           <div className="webinars-info">
-            <div className="section-label">{i18n.language === 'ar' ? 'دروس مباشرة أونلاين' : 'LIVE ONLINE WEBINARS'}</div>
+            <div className="section-label">{t('webinars_section.label')}</div>
             <h2 className="section-title" style={{ textAlign: 'left', marginBottom: 0 }}>
-              {i18n.language === 'ar' ? 'جلسات جماعية حول مواضيع تهمك' : 'Group sessions on topics that matter'}
+              {t('webinars_section.title')}
             </h2>
-            <p>{i18n.language === 'ar' ? 'نفس الخبير. موضوع أوسع. وبجزء بسيط من السعر.' : 'Same expert. Broader topic. A fraction of the price.'}</p>
+            <p>{t('webinars_section.subtitle')}</p>
           </div>
-          <a href="#" className="view-all">{i18n.language === 'ar' ? 'عرض جميع الجلسات ←' : 'View all sessions →'}</a>
         </div>
         <div className="webinar-grid">
           {webinars.map(w => <WebinarCard key={w.id} webinar={w} />)}
           {webinars.length === 0 && (
             <p style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', opacity: 0.5 }}>
-              {i18n.language === 'ar' ? 'لا توجد ويبينارز قادمة حالياً.' : 'No upcoming webinars at the moment.'}
+              {t('webinars_section.empty')}
             </p>
           )}
         </div>

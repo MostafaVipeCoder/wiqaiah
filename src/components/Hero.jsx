@@ -63,7 +63,7 @@ const Hero = () => {
           <div className="hero-features">
             <div className="feature"><span>✓</span> {t('hero.features.no_waiting')}</div>
             <div className="feature"><span>✓</span> {t('hero.features.no_prescriptions')}</div>
-            <div className="feature"><span>✓</span> {t('hero.features.personalized')}</div>
+            <div className="feature"><span>✓</span> {t('hero.features.same_dentist')}</div>
           </div>
         </div>
         

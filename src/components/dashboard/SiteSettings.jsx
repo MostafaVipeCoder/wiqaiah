@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Save, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Save, Settings as SettingsIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const SiteSettings = () => {
-  const [settings, setSettings] = useState({
-    consultation_price: 15,
-    discount_percentage: 10,
-    show_discount: true,
-    discount_text_en: '',
-    discount_text_ar: '',
-    booking_confirmation_email: '',
-    webinar_confirmation_email_default: ''
-  });
+  const { t, i18n } = useTranslation();
+  const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -25,9 +19,22 @@ const SiteSettings = () => {
     const { data, error } = await supabase
       .from('site_settings')
       .select('*')
-      .single();
+      .maybeSingle();
 
-    if (data && !error) setSettings(data);
+    if (!error && data) {
+      setSettings(data);
+    } else {
+      // Initialize with default values if not found
+      setSettings({
+        consultation_price: 15,
+        discount_percentage: 20,
+        show_discount_badge: true,
+        discount_badge_text_en: 'LIMITED TIME OFFER',
+        discount_badge_text_ar: 'لفترة محدودة فقط',
+        booking_confirmation_email: '',
+        webinar_confirmation_email_default: ''
+      });
+    }
     setLoading(false);
   };
 
@@ -38,108 +45,119 @@ const SiteSettings = () => {
 
     const { error } = await supabase
       .from('site_settings')
-      .update(settings)
-      .eq('id', settings.id);
+      .upsert({ 
+        id: settings.id,
+        ...settings,
+        updated_at: new Date()
+      });
 
     if (error) {
-       setMessage({ type: 'error', text: 'Error saving settings: ' + error.message });
+      setMessage({ type: 'error', text: t('dashboard.settings.error') });
     } else {
-       setMessage({ type: 'success', text: 'Settings updated successfully!' });
-       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      setMessage({ type: 'success', text: t('dashboard.settings.success') });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
     }
     setSaving(false);
   };
 
-  if (loading) return <p>Loading settings...</p>;
+  if (loading) return <div className="p-8 text-center">{t('common.loading')}</div>;
 
   return (
-    <div className="dashboard-content-inner animate-fade-in">
-       <div className="dashboard-card max-width-800">
-        <h3 className="section-title-dash"><Save size={18} /> Platform Pricing & Discounts</h3>
-        <p className="section-desc">Manage the consultation prices and the promotional discount displayed on the landing page.</p>
-        
-        <form onSubmit={handleSave} className="settings-form mt-4">
-          <div className="form-grid">
-            <div className="input-group">
-              <label>Standard Consultation Price ($)</label>
-              <input 
-                type="number" step="0.01" required 
-                value={settings.consultation_price}
-                onChange={e => setSettings({...settings, consultation_price: parseFloat(e.target.value)})}
-              />
-            </div>
-            
-            <div className="input-group">
-              <label>Discount Percentage (%)</label>
-              <input 
-                type="number" step="0.1" required 
-                value={settings.discount_percentage}
-                onChange={e => setSettings({...settings, discount_percentage: parseFloat(e.target.value)})}
-              />
-            </div>
+    <div className="dashboard-content-inner animate-fade-in" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="dashboard-card max-w-4xl">
+        <div className="flex-between mb-6">
+          <h3 className="section-title-dash"><SettingsIcon size={20} /> {t('dashboard.settings.title')}</h3>
+        </div>
 
-            <div className="input-group full-width checkbox-row">
-              <input 
-                type="checkbox" id="showDesc"
-                checked={settings.show_discount}
-                onChange={e => setSettings({...settings, show_discount: e.target.checked})}
-              />
-              <label htmlFor="showDesc">Show discount on Landing Page</label>
-            </div>
+        <p className="help-text mb-8">{t('dashboard.settings.desc')}</p>
 
-            <div className="input-group">
-              <label>Discount Badge Text (English)</label>
-              <input 
-                type="text" 
-                value={settings.discount_text_en}
-                onChange={e => setSettings({...settings, discount_text_en: e.target.value})}
-                placeholder="e.g. 10% OFF FIRST SESSION"
-              />
-            </div>
-
-            <div className="input-group">
-              <label>Discount Badge Text (Arabic)</label>
-              <input 
-                type="text" 
-                value={settings.discount_text_ar}
-                onChange={e => setSettings({...settings, discount_text_ar: e.target.value})}
-                dir="rtl"
-                placeholder="مثلاً: خصم 10% على أول جلسة"
-              />
-            </div>
-
-            <div className="input-group full-width mt-4">
-              <label>Booking Confirmation Email Template (Arabic/English)</label>
-              <textarea 
-                value={settings.booking_confirmation_email || ''} 
-                onChange={e => setSettings({...settings, booking_confirmation_email: e.target.value})} 
-                placeholder="Write the email content for individual consulting sessions..."
-                rows={5}
-              />
-              <small className="help-text">This content will be sent when you accept a consulting session request.</small>
-            </div>
-
-            <div className="input-group full-width">
-              <label>Default Webinar Confirmation Email</label>
-              <textarea 
-                value={settings.webinar_confirmation_email_default || ''} 
-                onChange={e => setSettings({...settings, webinar_confirmation_email_default: e.target.value})} 
-                placeholder="Default message for new webinars..."
-                rows={5}
-              />
-            </div>
+        {message.text && (
+          <div className={`alert-dash ${message.type} animate-slide-in`}>
+            {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            {message.text}
           </div>
+        )}
 
-          <div className="flex-between dashboard-form-footer mt-4">
-             {message.text && (
-               <div className={`status-message ${message.type}`}>
-                 <AlertCircle size={16} /> <span>{message.text}</span>
-               </div>
-             )}
-             <button type="submit" disabled={saving} className="primary-btn">
-               {saving ? 'Saving...' : 'Save Settings'}
-             </button>
-          </div>
+        <form onSubmit={handleSave} className="settings-form-grid">
+           <div className="form-grid">
+              <div className="input-group">
+                <label>{t('dashboard.settings.std_price')}</label>
+                <input 
+                  type="number" step="0.01" 
+                  value={settings.consultation_price ?? ''} 
+                  onChange={e => setSettings({...settings, consultation_price: parseFloat(e.target.value)})}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>{t('dashboard.settings.discount_pct')}</label>
+                <input 
+                  type="number" 
+                  value={settings.discount_percentage ?? ''} 
+                  onChange={e => setSettings({...settings, discount_percentage: parseInt(e.target.value)})}
+                />
+              </div>
+
+              <div className="input-group checkbox full-width">
+                <label className="flex gap-3 items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={!!settings.show_discount_badge} 
+                    onChange={e => setSettings({...settings, show_discount_badge: e.target.checked})}
+                  />
+                  <span>{t('dashboard.settings.show_discount')}</span>
+                </label>
+              </div>
+
+              <div className="input-group">
+                <label>{t('dashboard.settings.badge_en')}</label>
+                <input 
+                  type="text" 
+                  value={settings.discount_badge_text_en ?? ''} 
+                  onChange={e => setSettings({...settings, discount_badge_text_en: e.target.value})}
+                />
+              </div>
+
+              <div className="input-group">
+                <label>{t('dashboard.settings.badge_ar')}</label>
+                <input 
+                  type="text" dir="rtl"
+                  value={settings.discount_badge_text_ar ?? ''} 
+                  onChange={e => setSettings({...settings, discount_badge_text_ar: e.target.value})}
+                />
+              </div>
+
+              <div className="input-group full-width mt-4">
+                <label>{t('dashboard.settings.email_template')}</label>
+                <textarea 
+                  rows="4" 
+                  value={settings.booking_confirmation_email || ''} 
+                  onChange={e => setSettings({...settings, booking_confirmation_email: e.target.value})}
+                />
+                <small className="help-text">Available placeholders: {'{name}, {date}, {time}, {link}'}</small>
+              </div>
+
+              <div className="input-group full-width">
+                <label>{t('dashboard.settings.default_webinar_email')}</label>
+                <textarea 
+                  rows="4" 
+                  value={settings.webinar_confirmation_email_default || ''} 
+                  onChange={e => setSettings({...settings, webinar_confirmation_email_default: e.target.value})}
+                />
+                <small className="help-text">Available placeholders: {'{name}, {topic}, {date}, {link}'}</small>
+              </div>
+           </div>
+
+           <div className="flex-end mt-8 pt-6 border-t border-soft">
+              <button 
+                type="submit" 
+                className="primary-btn flex gap-2 items-center min-w-[150px] justify-center"
+                disabled={saving}
+              >
+                <Save size={18} />
+                {saving ? t('dashboard.settings.saving') : t('dashboard.settings.save_btn')}
+              </button>
+           </div>
         </form>
       </div>
     </div>

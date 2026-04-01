@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './HowItWorks.css';
 
 const Step = ({ number, title, text }) => (
@@ -10,24 +11,32 @@ const Step = ({ number, title, text }) => (
 );
 
 const HowItWorks = () => {
-  const steps = [
-    { number: '01', title: 'Book your slot', text: 'Choose a time that works for you. Takes 60 seconds on this page.' },
-    { number: '02', title: 'Join the video call', text: 'Your 20-minute session with Dr. Muhammad. Ask anything, get real clarity.' },
-    { number: '03', title: 'Get your risk report', text: 'Receive a personalized caries risk assessment after your session.' },
-    { number: '04', title: 'Join the community', text: 'Exclusive access to a members-only group with dental tips, Q&As, and content.' }
-  ];
+  const { t } = useTranslation();
+  const steps = t('how_it_works_new.steps', { returnObjects: true });
 
   return (
     <section id="how" className="how-section section-padding">
       <div className="container">
-        <div className="section-label">THE PROCESS</div>
+        <div className="section-label">{t('how_it_works_new.title').toUpperCase()}</div>
         <h2 className="section-title">
-          Three steps to <em>peace of mind</em>
+          {t('how_it_works_new.footer')}
         </h2>
+        
         <div className="steps-grid">
           {steps.map((step, i) => (
-            <Step key={i} {...step} />
+            <Step key={i} number={`0${i + 1}`} title={step.title} text={step.text} />
           ))}
+        </div>
+
+        <div className="disclaimer-block">
+          <div className="disclaimer-header">
+            <span className="warning-icon">⚠</span>
+            <h3>{t('disclaimer_text.title')}</h3>
+          </div>
+          <p className="disclaimer-content">{t('disclaimer_text.content')}</p>
+          <div className="disclaimer-replaces">
+            <p>{t('disclaimer_text.replaces')}</p>
+          </div>
         </div>
       </div>
     </section>

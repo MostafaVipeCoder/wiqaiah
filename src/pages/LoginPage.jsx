@@ -12,7 +12,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (user) return <Navigate to="/dashboard" />;
 
@@ -24,9 +24,9 @@ const LoginPage = () => {
     const loginPromise = login(email, password);
     
     toast.promise(loginPromise, {
-      loading: i18n.language === 'ar' ? 'جاري الدخول...' : 'Logging in...',
-      success: i18n.language === 'ar' ? 'تم الدخول بنجاح!' : 'Login successful!',
-      error: i18n.language === 'ar' ? 'خطأ في الدخول. تأكد من البيانات.' : 'Login failed. Check your credentials.',
+      loading: t('login_page.logging_in'),
+      success: t('login_page.success'),
+      error: t('login_page.failed'),
     });
 
     const { error } = await loginPromise;
@@ -40,12 +40,12 @@ const LoginPage = () => {
     <div className="login-page container section-padding">
       <div className="login-card animate-fade-up">
         <img src="logo.svg" alt="Wiqaiah" className="login-logo" />
-        <h2>{i18n.language === 'ar' ? 'دخول الطبيب' : 'Doctor Login'}</h2>
-        <p>{i18n.language === 'ar' ? 'قم بتسجيل الدخول لإدارة حجوزاتك والويبنارز.' : 'Login to manage your bookings and webinars.'}</p>
+        <h2>{t('login_page.title')}</h2>
+        <p>{t('login_page.subtitle')}</p>
         
         <form onSubmit={handleLogin} className="login-form">
           <div className="input-group">
-            <label>{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email'}</label>
+            <label>{t('login_page.email')}</label>
             <input 
               type="email" required 
               value={email}
@@ -54,7 +54,7 @@ const LoginPage = () => {
             />
           </div>
           <div className="input-group">
-            <label>{i18n.language === 'ar' ? 'كلمة المرور' : 'Password'}</label>
+            <label>{t('login_page.password')}</label>
             <input 
               type="password" required 
               value={password}
@@ -63,7 +63,7 @@ const LoginPage = () => {
             />
           </div>
           <button type="submit" disabled={loading} className="primary-btn login-btn">
-            {loading ? (i18n.language === 'ar' ? 'جاري الدخول...' : 'Logging in...') : (i18n.language === 'ar' ? 'دخول' : 'Login')}
+            {loading ? t('login_page.logging_in') : t('login_page.btn')}
           </button>
         </form>
       </div>

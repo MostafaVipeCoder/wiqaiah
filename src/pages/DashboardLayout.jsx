@@ -22,7 +22,7 @@ const SiteSettings = lazy(() => import('../components/dashboard/SiteSettings'));
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
 
   const handleLogout = async () => {
@@ -31,14 +31,14 @@ const DashboardLayout = () => {
   };
 
   const navItems = [
-    { path: '/dashboard/bookings', icon: Users, label: i18n.language === 'ar' ? 'الحجوزات' : 'Bookings' },
-    { path: '/dashboard/availability', icon: Calendar, label: i18n.language === 'ar' ? 'المواعيد' : 'Availability' },
-    { path: '/dashboard/webinars', icon: Video, label: i18n.language === 'ar' ? 'الويبنارز' : 'Webinars' },
-    { path: '/dashboard/settings', icon: Settings, label: i18n.language === 'ar' ? 'الإعدادات' : 'Settings' },
+    { path: '/dashboard/bookings', icon: Users, label: t('dashboard_nav.bookings') },
+    { path: '/dashboard/availability', icon: Calendar, label: t('dashboard_nav.availability') },
+    { path: '/dashboard/webinars', icon: Video, label: t('dashboard_nav.webinars') },
+    { path: '/dashboard/settings', icon: Settings, label: t('dashboard_nav.settings') },
   ];
 
   const currentLabel = navItems.find(i => location.pathname.startsWith(i.path))?.label 
-    || (i18n.language === 'ar' ? 'لوحة التحكم' : 'Dashboard');
+    || t('dashboard_nav.root');
 
   return (
     <div className="dashboard-wrapper">
@@ -67,7 +67,7 @@ const DashboardLayout = () => {
           </div>
           <button onClick={handleLogout} className="logout-btn">
             <LogOut size={18} />
-            <span>{i18n.language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
+            <span>{t('dashboard_nav.logout')}</span>
           </button>
         </div>
       </aside>
@@ -75,7 +75,7 @@ const DashboardLayout = () => {
       <main className="dashboard-main">
         <header className="dashboard-header">
            <div className="header-breadcrumbs">
-              <span className="breadcrumb-root">Dashboard</span>
+              <span className="breadcrumb-root">{t('dashboard_nav.root')}</span>
               <span className="breadcrumb-sep">/</span>
               <span className="breadcrumb-current">{currentLabel}</span>
            </div>

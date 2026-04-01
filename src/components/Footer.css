@@ -14,7 +14,7 @@
 .footer-brand { text-align: center; }
 
 .footer-logo-img {
-  height: 44px;
+  height: 100px;
   width: auto;
   /* invert and brighten for dark background */
   filter: brightness(0) invert(1) opacity(0.9);
