@@ -10,7 +10,6 @@ const ManageAvailability = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   
-  const [newSlot, setNewSlot] = useState({ date: '', start_time: '', end_time: '' });
   const [newTemplate, setNewTemplate] = useState({ day_of_week: 1, start_time: '', end_time: '' });
 
   const days = t('dashboard.avail.days', { returnObjects: true });
@@ -29,16 +28,6 @@ const ManageAvailability = () => {
     if (!slotsRes.error) setSlots(slotsRes.data || []);
     if (!templatesRes.error) setTemplates(templatesRes.data || []);
     setLoading(false);
-  };
-
-  const handleAddSlot = async (e) => {
-    e.preventDefault();
-    if (!newSlot.date || !newSlot.start_time || !newSlot.end_time) return;
-    const { error } = await supabase.from('availability').insert([newSlot]);
-    if (!error) {
-      setNewSlot({ date: '', start_time: '', end_time: '' });
-      fetchData();
-    }
   };
 
   const handleAddTemplate = async (e) => {
@@ -149,42 +138,6 @@ const ManageAvailability = () => {
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* SECTION 2: ONE-OFF SLOTS */}
-      <div className="dashboard-card mb-4">
-        <h3 className="section-title-dash"><Plus size={18} /> {t('dashboard.avail.add_template')} (One-off)</h3>
-        <form onSubmit={handleAddSlot} className="add-slot-form">
-          <div className="form-grid">
-            <div className="input-group">
-              <label><CalIcon size={14} /> {t('dashboard.bookings.date_time')}</label>
-              <input 
-                type="date" required 
-                value={newSlot.date}
-                onChange={e => setNewSlot({...newSlot, date: e.target.value})}
-              />
-            </div>
-            <div className="input-group">
-              <label><Clock size={14} /> {t('dashboard.avail.start')}</label>
-              <input 
-                type="time" required 
-                value={newSlot.start_time ?? ''}
-                onChange={e => setNewSlot({...newSlot, start_time: e.target.value})}
-              />
-            </div>
-            <div className="input-group">
-              <label><Clock size={14} /> {t('dashboard.avail.end')}</label>
-              <input 
-                type="time" required 
-                value={newSlot.end_time ?? ''}
-                onChange={e => setNewSlot({...newSlot, end_time: e.target.value})}
-              />
-            </div>
-            <div className="input-group flex-end">
-               <button type="submit" className="primary-btn add-btn">{t('dashboard.avail.add_template')}</button>
-            </div>
-          </div>
-        </form>
       </div>
 
       {/* SECTION 3: CURRENT SLOTS LIST */}

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation, Navigate, Routes, Route } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,9 @@ import {
   Video, 
   Settings, 
   LogOut,
-  LayoutDashboard
+  LayoutDashboard,
+  Menu,
+  X as CloseIcon
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './DashboardLayout.css';
@@ -24,6 +26,12 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -42,9 +50,25 @@ const DashboardLayout = () => {
 
   return (
     <div className="dashboard-wrapper">
-      <aside className="dashboard-sidebar">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
-          <img src="logo.svg" alt="Wiqaiah" className="sidebar-logo" />
+          <div className="sidebar-header-top">
+            <img src="logo.svg" alt="Wiqaiah" className="sidebar-logo" />
+            <button 
+              className="close-sidebar-btn"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <CloseIcon size={24} />
+            </button>
+          </div>
           <span className="badge-admin">ADMIN</span>
         </div>
         
@@ -75,8 +99,14 @@ const DashboardLayout = () => {
       <main className="dashboard-main">
         <header className="dashboard-header">
            <div className="header-breadcrumbs">
-              <span className="breadcrumb-root">{t('dashboard_nav.root')}</span>
-              <span className="breadcrumb-sep">/</span>
+              <button 
+                className="mobile-menu-btn"
+                onClick={() => setIsMobileMenuOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+              <span className="breadcrumb-root hide-mobile">{t('dashboard_nav.root')}</span>
+              <span className="breadcrumb-sep hide-mobile">/</span>
               <span className="breadcrumb-current">{currentLabel}</span>
            </div>
            
