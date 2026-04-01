@@ -167,11 +167,11 @@ const ManageWebinars = () => {
                  <input type="text" required value={formData.title_ar ?? ''} onChange={e => setFormData({...formData, title_ar: e.target.value})} dir="rtl" />
                </div>
                <div className="input-group full-width">
-                 <label>{t('dashboard.avail.templates_desc')} (English)</label>
+                 <label>{t('dashboard.webinars.description')} (English)</label>
                  <textarea value={formData.description ?? ''} onChange={e => setFormData({...formData, description: e.target.value})} />
                </div>
                <div className="input-group full-width">
-                 <label>{t('dashboard.avail.templates_desc')} (Arabic)</label>
+                 <label>{t('dashboard.webinars.description')} (Arabic)</label>
                  <textarea value={formData.description_ar ?? ''} onChange={e => setFormData({...formData, description_ar: e.target.value})} dir="rtl" />
                </div>
                 <div className="input-group">

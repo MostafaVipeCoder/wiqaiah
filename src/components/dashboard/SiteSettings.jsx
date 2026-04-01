@@ -31,6 +31,7 @@ const SiteSettings = () => {
         show_discount_badge: true,
         discount_badge_text_en: 'LIMITED TIME OFFER',
         discount_badge_text_ar: 'لفترة محدودة فقط',
+        auto_generate_slots: true,
         booking_confirmation_email: '',
         webinar_confirmation_email_default: ''
       });
@@ -109,6 +110,17 @@ const SiteSettings = () => {
                 </label>
               </div>
 
+              <div className="input-group checkbox full-width">
+                <label className="flex gap-3 items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={!!settings.auto_generate_slots} 
+                    onChange={e => setSettings({...settings, auto_generate_slots: e.target.checked})}
+                  />
+                  <span>{t('dashboard.settings.auto_gen_slots')}</span>
+                </label>
+              </div>
+
               <div className="input-group">
                 <label>{t('dashboard.settings.badge_en')}</label>
                 <input 
@@ -137,15 +149,7 @@ const SiteSettings = () => {
                 <small className="help-text">Available placeholders: {'{name}, {date}, {time}, {link}'}</small>
               </div>
 
-              <div className="input-group full-width">
-                <label>{t('dashboard.settings.default_webinar_email')}</label>
-                <textarea 
-                  rows="4" 
-                  value={settings.webinar_confirmation_email_default || ''} 
-                  onChange={e => setSettings({...settings, webinar_confirmation_email_default: e.target.value})}
-                />
-                <small className="help-text">Available placeholders: {'{name}, {topic}, {date}, {link}'}</small>
-              </div>
+
            </div>
 
            <div className="flex-end mt-8 pt-6 border-t border-soft">
