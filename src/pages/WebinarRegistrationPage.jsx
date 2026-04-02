@@ -60,9 +60,11 @@ const WebinarRegistrationPage = () => {
       .from('webinar_registrations')
       .insert([{
         webinar_id: webinarId,
-        registration_data: formData, // JSONB
-        name: formData.name || formData.Name || 'Anonymous', // Fallback for schema compatibility
-        email: formData.email || formData.Email || ''
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        registration_data: formData,
+        status: 'pending'
       }]);
 
     if (!error) {
@@ -132,8 +134,8 @@ const WebinarRegistrationPage = () => {
           <h3>{i18n.language === 'ar' ? 'سجل بياناتك' : 'Register Now'}</h3>
           
           {(() => {
-            const approvedCount = webinar.webinar_registrations?.filter(r => r.status === 'approved').length || 0;
-            const isFull = approvedCount >= (webinar.capacity || 50);
+            const acceptedCount = webinar.webinar_registrations?.filter(r => r.status === 'accepted').length || 0;
+            const isFull = acceptedCount >= (webinar.capacity || 50);
 
             if (isFull) {
               return (
@@ -161,6 +163,16 @@ const WebinarRegistrationPage = () => {
                      type="email" required 
                      value={formData.email || ''}
                      onChange={e => setFormData({...formData, email: e.target.value})}
+                   />
+                </div>
+                <div className="input-group">
+                   <label>{i18n.language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
+                   <input 
+                     type="tel" required 
+                     value={formData.phone || ''}
+                     onChange={e => setFormData({...formData, phone: e.target.value})}
+                     placeholder="+20 123 456 7890"
+                     dir="ltr"
                    />
                 </div>
 

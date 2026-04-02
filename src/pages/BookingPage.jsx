@@ -12,7 +12,7 @@ const BookingPage = () => {
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [formData, setFormData] = useState({ name: '', email: '', reason: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', reason: '' });
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
@@ -46,6 +46,7 @@ const BookingPage = () => {
         availability_id: selectedSlot.id,
         name: formData.name,
         email: formData.email,
+        phone: formData.phone,
         reason: formData.reason,
         status: 'pending'
       }]);
@@ -129,40 +130,69 @@ const BookingPage = () => {
           <h3><CheckCircle size={20} /> {i18n.language === 'ar' ? 'بيانات الحجز' : 'Booking Details'}</h3>
           {!selectedSlot ? (
             <div className="form-placeholder">
-              <p>{i18n.language === 'ar' ? 'يرجى اختيار موعد أولاً' : 'Please select a slot first'}</p>
+              <div className="placeholder-content">
+                <Calendar size={48} opacity={0.2} style={{ marginBottom: '16px' }} />
+                <p>{i18n.language === 'ar' ? 'يرجى اختيار موعد متاح من القائمة للبدء' : 'Please select an available slot from the list to start'}</p>
+              </div>
             </div>
           ) : (
-            <form onSubmit={handleBooking} className="booking-form animate-fade-in">
-              <div className="input-group">
-                <label>{i18n.language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
-                <input 
-                  type="text" required 
-                  value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
-                  placeholder={i18n.language === 'ar' ? 'ادخل اسمك' : 'Enter your name'}
-                />
+            <div className="booking-form-wrapper animate-fade-in">
+              <div className="selected-slot-summary">
+                <div className="summary-icon">
+                   <Clock size={24} />
+                </div>
+                <div className="summary-details">
+                   <h4>{i18n.language === 'ar' ? 'الموعد المختار' : 'Selected Slot'}</h4>
+                   <p>
+                     {new Date(selectedSlot.date).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}
+                     {" · "}
+                     {selectedSlot.start_time.slice(0, 5)} - {selectedSlot.end_time.slice(0, 5)}
+                   </p>
+                </div>
               </div>
-              <div className="input-group">
-                <label>{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
-                <input 
-                  type="email" required 
-                  value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
-                  placeholder="example@mail.com"
-                />
-              </div>
-              <div className="input-group">
-                <label>{i18n.language === 'ar' ? 'سبب الاستشارة (اختياري)' : 'Reason for consultation (Optional)'}</label>
-                <textarea 
-                  value={formData.reason}
-                  onChange={e => setFormData({...formData, reason: e.target.value})}
-                  placeholder={i18n.language === 'ar' ? 'ما الذي تود مناقشته؟' : 'What would you like to discuss?'}
-                />
-              </div>
-              <button type="submit" className="primary-btn submit-btn">
-                {i18n.language === 'ar' ? 'تأكيد طلب الحجز' : 'Confirm Booking Request'}
-              </button>
-            </form>
+
+              <form onSubmit={handleBooking} className="booking-form">
+                <div className="input-group">
+                  <label>{i18n.language === 'ar' ? 'الاسم الكامل' : 'Full Name'}</label>
+                  <input 
+                    type="text" required 
+                    placeholder={i18n.language === 'ar' ? 'أدخل اسمك هنا' : 'Enter your name'}
+                    value={formData.name}
+                    onChange={e => setFormData({...formData, name: e.target.value})}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>{i18n.language === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}</label>
+                  <input 
+                    type="email" required 
+                    value={formData.email}
+                    onChange={e => setFormData({...formData, email: e.target.value})}
+                    placeholder="example@mail.com"
+                  />
+                </div>
+                <div className="input-group">
+                  <label>{i18n.language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
+                  <input 
+                    type="tel" required 
+                    value={formData.phone}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    placeholder="+20 123 456 7890"
+                    dir="ltr"
+                  />
+                </div>
+                <div className="input-group">
+                  <label>{i18n.language === 'ar' ? 'سبب الاستشارة (اختياري)' : 'Reason for consultation (Optional)'}</label>
+                  <textarea 
+                    value={formData.reason}
+                    onChange={e => setFormData({...formData, reason: e.target.value})}
+                    placeholder={i18n.language === 'ar' ? 'ما الذي تود مناقشته؟' : 'What would you like to discuss?'}
+                  />
+                </div>
+                <button type="submit" className="primary-btn submit-btn">
+                  {i18n.language === 'ar' ? 'تأكيد طلب الحجز' : 'Confirm Booking Request'}
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </div>

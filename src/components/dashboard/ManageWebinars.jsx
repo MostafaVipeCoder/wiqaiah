@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Users, Save, X, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Mail, Phone, Save, X, ExternalLink } from 'lucide-react';
 
 const ManageWebinars = () => {
   const { t, i18n } = useTranslation();
@@ -95,7 +95,40 @@ const ManageWebinars = () => {
 
   const updateRegistrationStatus = async (regId, newStatus) => {
     const { error } = await supabase.from('webinar_registrations').update({ status: newStatus }).eq('id', regId);
-    if (!error) setRegistrations(prev => prev.map(r => r.id === regId ? { ...r, status: newStatus } : r));
+    if (!error) {
+      setRegistrations(prev => prev.map(r => r.id === regId ? { ...r, status: newStatus } : r));
+
+      // Send email if accepted
+      if (newStatus === 'accepted') {
+        const reg = registrations.find(r => r.id === regId);
+        const webinar = webinars.find(w => w.id === viewingRegistrations);
+        if (reg && webinar) {
+           const emailContent = (webinar.confirmation_email_content || '')
+             .replace(/\[Name\]/g, reg.name)
+             .replace(/\[الاسم\]/g, reg.name)
+             .replace(/\[Title\]/g, webinar.title)
+             .replace(/\[العنوان\]/g, webinar.title_ar || webinar.title)
+             .replace(/\[Link\]/g, webinar.meeting_link || '')
+             .replace(/\[الرابط\]/g, webinar.meeting_link || '');
+
+           try {
+             await supabase.functions.invoke('send-booking-email', {
+               body: {
+                 name: reg.name,
+                 email: reg.email,
+                 date: new Date(webinar.start_time).toLocaleDateString(),
+                 startTime: new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                 meetingLink: webinar.meeting_link || '',
+                 customMessage: emailContent
+               }
+             });
+           } catch (err) {
+             console.error('Failed to send webinar email:', err);
+             // silently fail or alert the user
+           }
+        }
+      }
+    }
   };
 
   const deleteWebinar = async (id) => {
@@ -123,12 +156,17 @@ const ManageWebinars = () => {
               <tbody>
                 {registrations.map(reg => (
                   <tr key={reg.id}>
-                    <td>{reg.name}</td>
+                    <td>
+                      <div className="patient-info">
+                        <strong>{reg.name}</strong>
+                        <span><Phone size={12} /> {reg.phone || '-'}</span>
+                      </div>
+                    </td>
                     <td>{reg.email}</td>
                     <td><span className={`status-pill ${reg.status}`}>{t(`dashboard.bookings.${reg.status}`)}</span></td>
                     <td>
                       <div className="action-btns">
-                        <button onClick={() => updateRegistrationStatus(reg.id, 'approved')} className="confirm-btn" title={t('dashboard.bookings.accepted')} disabled={reg.status === 'approved'}>
+                        <button onClick={() => updateRegistrationStatus(reg.id, 'accepted')} className="confirm-btn" title={t('dashboard.bookings.accepted')} disabled={reg.status === 'accepted'}>
                           <Plus size={14} />
                         </button>
                         <button onClick={() => updateRegistrationStatus(reg.id, 'rejected')} className="delete-btn" title={t('dashboard.bookings.rejected')} disabled={reg.status === 'rejected'}>

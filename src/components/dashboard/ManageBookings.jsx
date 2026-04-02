@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
-import { Check, X, Trash2, Mail, Users, ExternalLink } from 'lucide-react';
+import { Check, X, Trash2, Mail, Phone, Users, ExternalLink } from 'lucide-react';
 
 const ManageBookings = () => {
   const { t, i18n } = useTranslation();
@@ -45,8 +45,6 @@ const ManageBookings = () => {
     setIsUpdating(true);
     const updateData = { status };
     if (meetingLink) updateData.meeting_link = meetingLink;
-    // Note: If we had a column for custom_email_sent, we would save it here.
-    // For now, we assume this customEmail would be passed to an edge function if implemented.
 
     const { error } = await supabase
       .from('bookings')
@@ -54,10 +52,35 @@ const ManageBookings = () => {
       .eq('id', id);
 
     if (!error) {
+      if (status === 'accepted') {
+        const booking = bookings.find(b => b.id === id);
+        if (booking) {
+          try {
+            const { error: fnError } = await supabase.functions.invoke('send-booking-email', {
+              body: {
+                name: booking.name,
+                email: booking.email,
+                date: booking.availability?.date,
+                startTime: booking.availability?.start_time?.slice(0, 5),
+                meetingLink: meetingLink,
+                customMessage: customEmail // The full text from the textarea
+              }
+            });
+            if (fnError) throw fnError;
+          } catch (fnErr) {
+            console.error('Failed to send email via Edge Function:', fnErr);
+            alert(t('dashboard.bookings.email_failed') || 'Could not send confirmation email, but booking was approved.');
+          }
+        }
+      }
+
       setAcceptingId(null);
       setSessionLink('');
       setEmailContent('');
       fetchBookings();
+    } else {
+      console.error(error);
+      alert(t('common.error') || 'Error updating booking');
     }
     setIsUpdating(false);
   };
@@ -126,6 +149,7 @@ const ManageBookings = () => {
                       <div className="patient-info">
                         <strong>{booking.name}</strong>
                         <span><Mail size={12} /> {booking.email}</span>
+                        {booking.phone && <span><Phone size={12} /> {booking.phone}</span>}
                       </div>
                     </td>
                     <td>
