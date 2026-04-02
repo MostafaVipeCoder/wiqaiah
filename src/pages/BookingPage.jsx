@@ -5,6 +5,7 @@ import { Calendar, Clock, CheckCircle, ChevronLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './BookingPage.css';
+import '../components/HowItWorks.css';
 
 const BookingPage = () => {
   const { t, i18n } = useTranslation();
@@ -15,6 +16,7 @@ const BookingPage = () => {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
     fetchSlots();
   }, []);
 
@@ -76,6 +78,26 @@ const BookingPage = () => {
         <Link to="/" className="back-link"><ChevronLeft size={16} /> {i18n.language === 'ar' ? 'رجوع' : 'Back'}</Link>
         <h1>{i18n.language === 'ar' ? 'احجز استشارتك الخاصة' : 'Book Your Private Consultation'}</h1>
         <p>{i18n.language === 'ar' ? 'اختر موعداً يناسبك من قائمة المواعيد المتاحة أدناه.' : 'Select a time slot that works for you from the available options below.'}</p>
+      </div>
+
+      <div className="booking-steps-guide" style={{ marginBottom: '60px' }}>
+        <div className="steps-grid">
+          <div className="step-card">
+            <div className="step-num">01</div>
+            <h3>{i18n.language === 'ar' ? 'اختر موعدك' : 'Select a Slot'}</h3>
+            <p>{i18n.language === 'ar' ? 'قم باختيار الوقت والتاريخ المناسبين لك من القائمة المتاحة.' : 'Choose a suitable time and date from the available options.'}</p>
+          </div>
+          <div className="step-card">
+            <div className="step-num">02</div>
+            <h3>{i18n.language === 'ar' ? 'أدخل بياناتك' : 'Enter Details'}</h3>
+            <p>{i18n.language === 'ar' ? 'قم بتعبئة نموذج الحجز لتوضيح سبب الاستشارة لتجهيز أفضل.' : 'Fill out the booking form with your details to help us prepare.'}</p>
+          </div>
+          <div className="step-card">
+            <div className="step-num">03</div>
+            <h3>{i18n.language === 'ar' ? 'تأكيد الموعد' : 'Booking Confirmation'}</h3>
+            <p>{i18n.language === 'ar' ? 'سيصلك بريد إلكتروني يحتوي على تأكيد الموعد ورابط الاجتماع.' : 'You will receive an email with the appointment confirmation and meeting link.'}</p>
+          </div>
+        </div>
       </div>
 
       <div className="booking-selection-grid">

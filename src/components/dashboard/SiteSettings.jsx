@@ -24,16 +24,9 @@ const SiteSettings = () => {
     if (!error && data) {
       setSettings(data);
     } else {
-      // Initialize with default values if not found
       setSettings({
-        consultation_price: 15,
-        discount_percentage: 20,
-        show_discount_badge: true,
-        discount_badge_text_en: 'LIMITED TIME OFFER',
-        discount_badge_text_ar: 'لفترة محدودة فقط',
         auto_generate_slots: true,
         booking_confirmation_email: '',
-        webinar_confirmation_email_default: ''
       });
     }
     setLoading(false);
@@ -42,18 +35,23 @@ const SiteSettings = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setMessage({ type: '', text: '' });
+    const { id, created_at, updated_at, ...updateData } = settings;
 
-    const { error } = await supabase
+    const targetId = id || '00000000-0000-0000-0000-000000000000';
+
+    const { data: updatedRows, error } = await supabase
       .from('site_settings')
-      .upsert({ 
-        id: settings.id,
-        ...settings,
+      .update({
+        ...updateData,
         updated_at: new Date()
-      });
+      })
+      .eq('id', targetId)
+      .select();
 
     if (error) {
       setMessage({ type: 'error', text: t('dashboard.settings.error') });
+    } else if (!updatedRows || updatedRows.length === 0) {
+      setMessage({ type: 'error', text: 'لم يتم العثور على الإعدادات أو لا تملك صلاحية التعديل.' });
     } else {
       setMessage({ type: 'success', text: t('dashboard.settings.success') });
       setTimeout(() => setMessage({ type: '', text: '' }), 5000);
@@ -80,88 +78,44 @@ const SiteSettings = () => {
         )}
 
         <form onSubmit={handleSave} className="settings-form-grid">
-           <div className="form-grid">
-              <div className="input-group">
-                <label>{t('dashboard.settings.std_price')}</label>
-                <input 
-                  type="number" step="0.01" 
-                  value={settings.consultation_price ?? ''} 
-                  onChange={e => setSettings({...settings, consultation_price: parseFloat(e.target.value)})}
+          <div className="form-grid">
+            {/* Auto-generate slots toggle */}
+            <div className="input-group checkbox full-width">
+              <label className="flex gap-3 items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!settings.auto_generate_slots}
+                  onChange={e => setSettings({ ...settings, auto_generate_slots: e.target.checked })}
                 />
-              </div>
+                <span>{t('dashboard.settings.auto_gen_slots')}</span>
+              </label>
+            </div>
 
-              <div className="input-group">
-                <label>{t('dashboard.settings.discount_pct')}</label>
-                <input 
-                  type="number" 
-                  value={settings.discount_percentage ?? ''} 
-                  onChange={e => setSettings({...settings, discount_percentage: parseInt(e.target.value)})}
-                />
-              </div>
+            {/* Booking confirmation email template */}
+            <div className="input-group full-width mt-4">
+              <label>{t('dashboard.settings.email_template')}</label>
+              <textarea
+                rows="6"
+                value={settings.booking_confirmation_email || ''}
+                onChange={e => setSettings({ ...settings, booking_confirmation_email: e.target.value })}
+                placeholder="Dear {name}, your session is confirmed for {date} at {time}. Join here: {link}"
+              />
+              <small className="help-text">
+                Available placeholders: {'{name}, {date}, {time}, {link}'}
+              </small>
+            </div>
+          </div>
 
-              <div className="input-group checkbox full-width">
-                <label className="flex gap-3 items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={!!settings.show_discount_badge} 
-                    onChange={e => setSettings({...settings, show_discount_badge: e.target.checked})}
-                  />
-                  <span>{t('dashboard.settings.show_discount')}</span>
-                </label>
-              </div>
-
-              <div className="input-group checkbox full-width">
-                <label className="flex gap-3 items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={!!settings.auto_generate_slots} 
-                    onChange={e => setSettings({...settings, auto_generate_slots: e.target.checked})}
-                  />
-                  <span>{t('dashboard.settings.auto_gen_slots')}</span>
-                </label>
-              </div>
-
-              <div className="input-group">
-                <label>{t('dashboard.settings.badge_en')}</label>
-                <input 
-                  type="text" 
-                  value={settings.discount_badge_text_en ?? ''} 
-                  onChange={e => setSettings({...settings, discount_badge_text_en: e.target.value})}
-                />
-              </div>
-
-              <div className="input-group">
-                <label>{t('dashboard.settings.badge_ar')}</label>
-                <input 
-                  type="text" dir="rtl"
-                  value={settings.discount_badge_text_ar ?? ''} 
-                  onChange={e => setSettings({...settings, discount_badge_text_ar: e.target.value})}
-                />
-              </div>
-
-              <div className="input-group full-width mt-4">
-                <label>{t('dashboard.settings.email_template')}</label>
-                <textarea 
-                  rows="4" 
-                  value={settings.booking_confirmation_email || ''} 
-                  onChange={e => setSettings({...settings, booking_confirmation_email: e.target.value})}
-                />
-                <small className="help-text">Available placeholders: {'{name}, {date}, {time}, {link}'}</small>
-              </div>
-
-
-           </div>
-
-           <div className="flex-end mt-8 pt-6 border-t border-soft">
-              <button 
-                type="submit" 
-                className="primary-btn flex gap-2 items-center min-w-[150px] justify-center"
-                disabled={saving}
-              >
-                <Save size={18} />
-                {saving ? t('dashboard.settings.saving') : t('dashboard.settings.save_btn')}
-              </button>
-           </div>
+          <div className="flex-end mt-8 pt-6 border-t border-soft">
+            <button
+              type="submit"
+              className="primary-btn flex gap-2 items-center min-w-[150px] justify-center"
+              disabled={saving}
+            >
+              <Save size={18} />
+              {saving ? t('dashboard.settings.saving') : t('dashboard.settings.save_btn')}
+            </button>
+          </div>
         </form>
       </div>
     </div>

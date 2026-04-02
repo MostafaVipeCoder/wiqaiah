@@ -1,38 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { usePageContent } from '../hooks/usePageContent';
+import { usePricing } from '../hooks/usePricing';
 import './Hero.css';
 
 const Hero = () => {
   const { t, i18n } = useTranslation();
-  const [settings, setSettings] = useState({
-    consultation_price: 15.0,
-    discount_percentage: 10.0,
-    show_discount: true,
-    discount_text_en: "10% OFF FIRST SESSION",
-    discount_text_ar: "خصم 10% على أول جلسة"
-  });
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const { get } = usePageContent('hero');
 
-  useEffect(() => {
-    // Fetch settings from Supabase
-    const fetchSettings = async () => {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
-      
-      if (data && !error) {
-        setSettings(data);
-      }
-    };
-    fetchSettings();
-  }, []);
+  const {
+    finalPrice,
+    originalPrice,
+    show_discount,
+    discount_text_en,
+    discount_text_ar,
+  } = usePricing();
 
-  const discountText = i18n.language === 'ar' ? settings.discount_text_ar : settings.discount_text_en;
-  const currentPrice = settings.show_discount 
-    ? (settings.consultation_price * (1 - settings.discount_percentage / 100)).toFixed(2)
-    : settings.consultation_price.toFixed(2);
+  const badgeText = lang === 'ar' ? discount_text_ar : discount_text_en;
 
   return (
     <section className="hero-section">
@@ -40,39 +26,38 @@ const Hero = () => {
         <div className="hero-content animate-fade-up">
           <div className="badge">
             <span className="badge-dot"></span>
-            <span className="badge-text">{t('hero.badge')}</span>
+            <span className="badge-text">{get('badge', lang, t('hero.badge'))}</span>
           </div>
-          
-          <h1 dangerouslySetInnerHTML={{ __html: t('hero.title') }} />
-          
-          <p className="hero-subtext" dangerouslySetInnerHTML={{ __html: t('hero.subtitle') }} />
+
+          <h1 dangerouslySetInnerHTML={{ __html: get('title', lang, t('hero.title')) }} />
+
+          <p className="hero-subtext" dangerouslySetInnerHTML={{ __html: get('subtitle', lang, t('hero.subtitle')) }} />
 
           <div className="hero-actions">
-            <Link to="/book" className="primary-btn">{t('hero.book_btn')}</Link>
+            <Link to="/book" className="primary-btn">{get('book_btn', lang, t('hero.book_btn'))}</Link>
             <div className="price-tag">
-              <span className="price">${currentPrice}</span>
-              {settings.show_discount && (
+              <span className="price">${finalPrice}</span>
+              {show_discount && (
                 <>
-                  <span className="old-price">${settings.consultation_price}</span>
-                  <span className="discount">{discountText}</span>
+                  <span className="old-price">${originalPrice}</span>
+                  {badgeText && <span className="discount">{badgeText}</span>}
                 </>
               )}
             </div>
           </div>
 
           <div className="hero-features">
-            <div className="feature"><span>✓</span> {t('hero.features.no_waiting')}</div>
-            <div className="feature"><span>✓</span> {t('hero.features.no_prescriptions')}</div>
-            <div className="feature"><span>✓</span> {t('hero.features.same_dentist')}</div>
+            <div className="feature"><span>✓</span> {get('feature_no_waiting', lang, t('hero.features.no_waiting'))}</div>
+            <div className="feature"><span>✓</span> {get('feature_no_prescriptions', lang, t('hero.features.no_prescriptions'))}</div>
+            <div className="feature"><span>✓</span> {get('feature_same_dentist', lang, t('hero.features.same_dentist'))}</div>
           </div>
         </div>
-        
-        {/* Image side - placeholder (the user removed the original hero image) */}
+
         <div className="hero-image animate-fade-in">
           <div className="image-wrapper">
-             <div className="gradient-sphere"></div>
-             <div className="floating-card c1">🦷 {i18n.language === 'ar' ? 'عناية وقائية' : 'Preventive Care'}</div>
-             <div className="floating-card c2">✨ {i18n.language === 'ar' ? 'استشارة أونلاين' : 'Online consult'}</div>
+            <div className="gradient-sphere"></div>
+            <div className="floating-card c1">🦷 {lang === 'ar' ? 'عناية وقائية' : 'Preventive Care'}</div>
+            <div className="floating-card c2">✨ {lang === 'ar' ? 'استشارة أونلاين' : 'Online consult'}</div>
           </div>
         </div>
       </div>

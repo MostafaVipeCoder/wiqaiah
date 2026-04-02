@@ -125,6 +125,7 @@ const resources = {
         "bookings": "Bookings",
         "availability": "Availability",
         "webinars": "Webinars",
+        "content": "Content",
         "settings": "Settings",
         "logout": "Logout",
         "root": "Dashboard"
@@ -329,6 +330,7 @@ const resources = {
         "bookings": "الحجوزات",
         "availability": "المواعيد",
         "webinars": "الويبنارز",
+        "content": "المحتوى",
         "settings": "الإعدادات",
         "logout": "تسجيل الخروج",
         "root": "لوحة التحكم"

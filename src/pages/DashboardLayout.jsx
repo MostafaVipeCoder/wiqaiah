@@ -10,6 +10,7 @@ import {
   LogOut,
   LayoutDashboard,
   Menu,
+  FileText,
   X as CloseIcon
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -20,6 +21,7 @@ const ManageBookings = lazy(() => import('../components/dashboard/ManageBookings
 const ManageAvailability = lazy(() => import('../components/dashboard/ManageAvailability'));
 const ManageWebinars = lazy(() => import('../components/dashboard/ManageWebinars'));
 const SiteSettings = lazy(() => import('../components/dashboard/SiteSettings'));
+const ManageContent = lazy(() => import('../components/dashboard/ManageContent'));
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -42,6 +44,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/bookings', icon: Users, label: t('dashboard_nav.bookings') },
     { path: '/dashboard/availability', icon: Calendar, label: t('dashboard_nav.availability') },
     { path: '/dashboard/webinars', icon: Video, label: t('dashboard_nav.webinars') },
+    { path: '/dashboard/content', icon: FileText, label: t('dashboard_nav.content') },
     { path: '/dashboard/settings', icon: Settings, label: t('dashboard_nav.settings') },
   ];
 
@@ -127,6 +130,7 @@ const DashboardLayout = () => {
               <Route path="bookings" element={<ManageBookings />} />
               <Route path="availability" element={<ManageAvailability />} />
               <Route path="webinars" element={<ManageWebinars />} />
+              <Route path="content" element={<ManageContent />} />
               <Route path="settings" element={<SiteSettings />} />
               <Route path="*" element={<Navigate to="bookings" replace />} />
             </Routes>

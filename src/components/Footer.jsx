@@ -1,9 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePageContent } from '../hooks/usePageContent';
 import './Footer.css';
 
 const Footer = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+  const { get } = usePageContent('footer');
 
   return (
     <footer className="footer">
@@ -11,7 +14,7 @@ const Footer = () => {
 
         <div className="footer-brand">
           <img src="logo.svg" alt="Wiqaiah" className="footer-logo-img" />
-          <p className="footer-motto">{t('footer.motto')}</p>
+          <p className="footer-motto">{get('motto', lang, t('footer.motto'))}</p>
         </div>
 
         <div className="footer-links">
@@ -30,8 +33,8 @@ const Footer = () => {
         </div>
 
         <div className="footer-legal">
-          <p>{t('footer.legal.copyright')}</p>
-          <p className="disclaimer" dangerouslySetInnerHTML={{ __html: t('footer.legal.disclaimer') }}></p>
+          <p>{get('copyright', lang, t('footer.legal.copyright'))}</p>
+          <p className="disclaimer" dangerouslySetInnerHTML={{ __html: get('disclaimer', lang, t('footer.legal.disclaimer')) }} />
         </div>
 
       </div>
