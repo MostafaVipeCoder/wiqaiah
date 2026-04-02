@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { Check, X, Trash2, Mail, Phone, Users, ExternalLink } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const ManageBookings = () => {
   const { t, i18n } = useTranslation();
@@ -12,6 +13,8 @@ const ManageBookings = () => {
   const [siteSettings, setSiteSettings] = useState(null);
   const [emailContent, setEmailContent] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [summaryId, setSummaryId] = useState(null);
+  const [summaryText, setSummaryText] = useState('');
 
   useEffect(() => {
     fetchBookings();
@@ -116,6 +119,32 @@ const ManageBookings = () => {
     setEmailContent(replacePlaceholders(template, booking, newLink));
   };
 
+  const sendSummary = async () => {
+    if (!summaryText) return;
+    setIsUpdating(true);
+    const booking = bookings.find(b => b.id === summaryId);
+    
+    try {
+      await supabase.functions.invoke('send-booking-email', {
+        body: {
+          name: booking.name,
+          email: booking.email,
+          date: new Date(booking.availability.date).toLocaleDateString(),
+          startTime: booking.availability.start_time,
+          meetingLink: booking.meeting_link || '',
+          customMessage: summaryText
+        }
+      });
+      toast.success(i18n.language === 'ar' ? 'تم إرسال الملخص بنجاح!' : 'Summary sent successfully!');
+      setSummaryId(null);
+      setSummaryText('');
+    } catch (err) {
+      toast.error(i18n.language === 'ar' ? 'فشل في إرسال الملخص' : 'Failed to send summary');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const deleteBooking = async (id, availability_id) => {
     const { error } = await supabase.from('bookings').delete().eq('id', id);
     if (!error) {
@@ -175,9 +204,16 @@ const ManageBookings = () => {
                           </div>
                         )}
                         {booking.status === 'accepted' && booking.meeting_link && (
-                          <a href={booking.meeting_link} target="_blank" rel="noreferrer" className="link-info-pill hover:bg-teal-50 transition-colors">
-                            <ExternalLink size={12} /> {booking.meeting_link.length > 20 ? booking.meeting_link.substring(0, 20) + '...' : booking.meeting_link}
-                          </a>
+                          <div className="flex flex-col gap-2">
+                             <a href={booking.meeting_link} target="_blank" rel="noreferrer" className="link-info-pill hover:bg-teal-50 transition-colors">
+                               <ExternalLink size={12} /> {booking.meeting_link.length > 20 ? booking.meeting_link.substring(0, 20) + '...' : booking.meeting_link}
+                             </a>
+                             {new Date(`${booking.availability?.date}T${booking.availability?.start_time}`) < new Date() && (
+                               <button onClick={() => setSummaryId(booking.id)} className="summary-btn-action">
+                                 <Mail size={14} /> {i18n.language === 'ar' ? 'إرسال ملخص' : 'Send Summary'}
+                               </button>
+                             )}
+                          </div>
                         )}
                         <button onClick={() => deleteBooking(booking.id, booking.availability_id)} className="delete-btn" title={t('common.delete')}>
                           <Trash2 size={16} />
@@ -247,6 +283,40 @@ const ManageBookings = () => {
                 style={{ width: '100%', justifyContent: 'center' }}
               >
                 <Check size={18} /> {isUpdating ? t('common.loading') : t('dashboard.bookings.send_link_btn')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Modal */}
+      {summaryId && (
+        <div className="modal-backdrop" onClick={() => setSummaryId(null)}>
+          <div className="accept-modal-content animate-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>{i18n.language === 'ar' ? 'إرسال ملخص الجلسة' : 'Send Session Summary'}</h4>
+              <button onClick={() => setSummaryId(null)} className="btn-close-modal"><X size={20} /></button>
+            </div>
+            <div className="email-custom-area">
+              <div className="email-field-group">
+                <label>{i18n.language === 'ar' ? 'اكتب ملخص الجلسة والخطوات القادمة' : 'Session Summary & Next Steps'}</label>
+                <textarea
+                  className="dash-textarea"
+                  style={{ minHeight: '200px' }}
+                  value={summaryText}
+                  onChange={(e) => setSummaryText(e.target.value)}
+                  placeholder={i18n.language === 'ar' ? 'مثال: شكراً لحضورك.. لقد ناقشنا كذا وكذا.. والخطوات القادمة هي..' : 'Thank you for attending... we discussed... next steps are...'}
+                />
+              </div>
+            </div>
+            <div className="dialog-actions">
+              <button 
+                onClick={sendSummary} 
+                className="btn-accept-send"
+                disabled={isUpdating || !summaryText}
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                <Mail size={18} /> {isUpdating ? t('common.loading') : (i18n.language === 'ar' ? 'إرسال للمريض' : 'Send to Patient')}
               </button>
             </div>
           </div>

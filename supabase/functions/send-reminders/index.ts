@@ -12,7 +12,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req) => {
   const authHeader = req.headers.get('Authorization');
-  const cronSecret = Deno.env.get('CRON_SECRET');
+  const cronSecret = Deno.env.get('CRON_SECRET') || 'Wq_Reminders_2024_Sec';
   
   if (authHeader !== `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` && 
       authHeader !== `Bearer ${cronSecret}`) {
