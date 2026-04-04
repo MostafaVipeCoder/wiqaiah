@@ -31,7 +31,13 @@ function App() {
   const { site_title_ar, site_title_en } = useSiteSettings();
 
   React.useEffect(() => {
-    const title = i18n.language === 'ar' ? site_title_ar : site_title_en;
+    const lang = i18n.language || 'en';
+    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    
+    document.documentElement.lang = lang;
+    document.documentElement.dir = dir;
+    
+    const title = lang === 'ar' ? site_title_ar : site_title_en;
     if (title) {
       document.title = title;
     }

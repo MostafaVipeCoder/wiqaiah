@@ -10,10 +10,7 @@ import { useTranslation } from 'react-i18next';
 const LandingPage = () => {
   const { i18n } = useTranslation();
 
-  useEffect(() => {
-    // Set document direction based on language
-    document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
-  }, [i18n.language]);
+
 
   return (
     <>
