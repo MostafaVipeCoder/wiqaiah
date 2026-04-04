@@ -1,12 +1,24 @@
 import React, { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useSiteSettings } from './hooks/useSiteSettings'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import LoadingSpinner from './components/LoadingSpinner'
 import { Toaster } from 'react-hot-toast'
 import './App.css'
 
-// LAZY LOAD PAGES
+import { useLocation } from 'react-router-dom'
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname]);
+  return null;
+}
+
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const BookingPage = lazy(() => import('./pages/BookingPage'));
 const WebinarRegistrationPage = lazy(() => import('./pages/WebinarRegistrationPage'));
@@ -15,8 +27,19 @@ const DashboardLayout = lazy(() => import('./pages/DashboardLayout'));
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
 function App() {
+  const { i18n } = useTranslation();
+  const { site_title_ar, site_title_en } = useSiteSettings();
+
+  React.useEffect(() => {
+    const title = i18n.language === 'ar' ? site_title_ar : site_title_en;
+    if (title) {
+      document.title = title;
+    }
+  }, [i18n.language, site_title_ar, site_title_en]);
+
   return (
     <div className="app-container">
+      <ScrollToTop />
       <Toaster 
         position="top-center"
         toastOptions={{

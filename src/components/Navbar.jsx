@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Menu, X } from 'lucide-react';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -9,6 +10,8 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const { site_logo_url, site_title_ar, site_title_en } = useSiteSettings();
+  const siteTitle = i18n.language === 'ar' ? site_title_ar : site_title_en;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -25,7 +28,11 @@ const Navbar = () => {
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container nav-content">
         <Link to="/" className="logo-link">
-          <img src="logo.svg" alt="Wiqaiah" className="nav-logo-img" />
+          <img 
+            src={site_logo_url || "logo.svg"} 
+            alt={siteTitle} 
+            className="nav-logo-img" 
+          />
         </Link>
 
         <div className={`nav-links ${menuOpen ? 'mobile-open' : ''}`}>

@@ -9,6 +9,7 @@ const Hero = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
   const { get } = usePageContent('hero');
+  const imageUrl = get('image_url', lang, '');
 
   const {
     finalPrice,
@@ -56,6 +57,13 @@ const Hero = () => {
         <div className="hero-image animate-fade-in">
           <div className="image-wrapper">
             <div className="gradient-sphere"></div>
+            {imageUrl ? (
+              <img src={imageUrl} alt="Wiqaiah Hero" className="hero-main-img" />
+            ) : (
+              <div className="hero-main-img-placeholder">
+                <div className="placeholder-blob" />
+              </div>
+            )}
             <div className="floating-card c1">🦷 {lang === 'ar' ? 'عناية وقائية' : 'Preventive Care'}</div>
             <div className="floating-card c2">✨ {lang === 'ar' ? 'استشارة أونلاين' : 'Online consult'}</div>
           </div>

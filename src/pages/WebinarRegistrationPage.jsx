@@ -3,6 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { ChevronLeft, ArrowLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
+import { usePageContent } from '../hooks/usePageContent';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import toast from 'react-hot-toast';
 import './WebinarRegistrationPage.css';
 
@@ -13,6 +16,8 @@ const WebinarRegistrationPage = () => {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const { get } = usePageContent('confirmations');
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
 
   useEffect(() => {
     fetchWebinar();
@@ -86,8 +91,8 @@ const WebinarRegistrationPage = () => {
       <div className="registration-status-page container section-padding">
         <div className="status-card">
           <CheckCircle size={64} color="var(--brand-primary)" />
-          <h2>{i18n.language === 'ar' ? 'تم التسجيل بنجاح!' : 'Registration Successful!'}</h2>
-          <p>{i18n.language === 'ar' ? 'شكراً لك. سيصلك رابط الحضور وتفاصيل الويبينار عبر البريد الإلكتروني قريباً.' : 'Thank you for registering. You will receive the meeting link and details via email soon.'}</p>
+          <h2>{get('webinar_success_title', lang, i18n.language === 'ar' ? 'تم التسجيل بنجاح!' : 'Registration Successful!')}</h2>
+          <p>{get('webinar_success_message', lang, i18n.language === 'ar' ? 'شكراً لك. سيصلك رابط الحضور وتفاصيل الويبينار عبر البريد الإلكتروني قريباً.' : 'Thank you for registering. You will receive the meeting link and details via email soon.')}</p>
           <Link to="/" className="primary-btn">{i18n.language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}</Link>
         </div>
       </div>
@@ -114,8 +119,15 @@ const WebinarRegistrationPage = () => {
 
         <h1>{title}</h1>
         <div className="reg-meta">
-          <span className="meta-item"><Calendar size={18} /> {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          <span className="meta-item"><Clock size={18} /> {new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · 60 min</span>
+          <span className="meta-item">
+            <Calendar size={18} /> 
+            {new Date(webinar.start_time).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </span>
+          <span className="meta-item">
+            <Clock size={18} /> 
+            {new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+            {" "} ({Intl.DateTimeFormat().resolvedOptions().timeZone})
+          </span>
         </div>
       </div>
 
@@ -167,13 +179,21 @@ const WebinarRegistrationPage = () => {
                 </div>
                 <div className="input-group">
                    <label>{i18n.language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
-                   <input 
-                     type="tel" required 
-                     value={formData.phone || ''}
-                     onChange={e => setFormData({...formData, phone: e.target.value})}
-                     placeholder="+20 123 456 7890"
-                     dir="ltr"
-                   />
+                   <PhoneInput
+                    country={'eg'}
+                    value={formData.phone || ''}
+                    onChange={phone => setFormData({...formData, phone})}
+                    placeholder="+20 123 456 7890"
+                    specialLabel=""
+                    inputProps={{
+                      name: 'phone',
+                      required: true,
+                    }}
+                    containerClass="phone-input-container"
+                    inputClass="phone-input-field"
+                    buttonClass="phone-input-button"
+                    searchPlaceholder={i18n.language === 'ar' ? 'بحث عن دولة' : 'Search country'}
+                  />
                 </div>
 
                 {/* Dynamic fields from database */}

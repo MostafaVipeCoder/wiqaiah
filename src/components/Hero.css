@@ -152,12 +152,38 @@
 
 .hero-main-img {
   width: 100%;
-  height: auto;
-  border-radius: 24px;
+  height: 100%;
+  border-radius: 32px;
   position: relative;
   z-index: 2;
-  box-shadow: var(--shadow-lg);
-  display: block;
+  box-shadow: 0 32px 64px -16px rgba(18, 97, 88, 0.2);
+  object-fit: cover;
+  border: 4px solid var(--white);
+  background: var(--white);
+}
+
+.hero-main-img-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 32px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.placeholder-blob {
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(circle, var(--brand-primary), var(--brand-dark));
+  opacity: 0.1;
+  filter: blur(40px);
+  border-radius: 50%;
+  animation: float 8s ease-in-out infinite;
 }
 
 .floating-card {

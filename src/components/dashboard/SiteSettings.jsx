@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings as SettingsIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Save, Settings as SettingsIcon, AlertCircle, CheckCircle2, Upload, Image as ImageIcon } from 'lucide-react';
 
 const SiteSettings = () => {
   const { t, i18n } = useTranslation();
@@ -30,6 +30,42 @@ const SiteSettings = () => {
       });
     }
     setLoading(false);
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate type
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: i18n.language === 'ar' ? 'يرجى اختيار ملف صورة صالح.' : 'Please select a valid image file.' });
+      return;
+    }
+
+    setSaving(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `site-logo-${Math.random()}.${fileExt}`;
+    const filePath = `branding/${fileName}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('content-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('content-images')
+        .getPublicUrl(filePath);
+
+      setSettings({ ...settings, site_logo_url: publicUrl });
+      setMessage({ type: 'success', text: i18n.language === 'ar' ? 'تم رفع الشعار بنجاح! اضغط حفظ لتطبيق التغييرات.' : 'Logo uploaded successfully! Click save to apply changes.' });
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      setMessage({ type: 'error', text: i18n.language === 'ar' ? 'فشل رفع الشعار.' : 'Failed to upload logo.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSave = async (e) => {
@@ -89,6 +125,83 @@ const SiteSettings = () => {
                 />
                 <span>{t('dashboard.settings.auto_gen_slots')}</span>
               </label>
+            </div>
+
+            {/* Site Logo Section */}
+            <div className="input-group full-width mt-4 mb-6">
+              <label><ImageIcon size={18} /> {i18n.language === 'ar' ? 'شعار الموقع' : 'Site Logo'}</label>
+              <div className="flex gap-6 items-center flex-wrap bg-soft p-4 rounded-xl border border-dashed border-border-color">
+                {settings.site_logo_url ? (
+                  <div className="relative group">
+                    <img 
+                      src={settings.site_logo_url} 
+                      alt="Current Logo" 
+                      className="h-16 w-auto object-contain bg-white p-2 rounded-lg shadow-sm"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex-center transition-opacity rounded-lg">
+                       <span className="text-white text-[10px] font-bold uppercase">{i18n.language === 'ar' ? 'تعديل' : 'Edit'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 bg-white rounded-lg flex-center border border-border-color border-dashed">
+                    <ImageIcon className="text-muted" size={24} />
+                  </div>
+                )}
+                
+                <div className="flex-1 min-w-[200px]">
+                  <p className="text-xs text-muted mb-3">
+                    {i18n.language === 'ar' ? 'يفضل استخدام شعار بخلفية شفافة (PNG) وبحجم مناسب.' : 'Recommended: Transparent PNG, high resolution.'}
+                  </p>
+                  <label className="secondary-btn cursor-pointer inline-flex items-center gap-2">
+                    <Upload size={16} />
+                    {i18n.language === 'ar' ? 'رفع شعار جديد' : 'Upload New Logo'}
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={saving}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Site Titles */}
+            <div className="input-group">
+              <label>{i18n.language === 'ar' ? 'اسم الموقع (بالعربية)' : 'Site Title (Arabic)'}</label>
+              <input
+                type="text"
+                value={settings.site_title_ar || ''}
+                onChange={e => setSettings({ ...settings, site_title_ar: e.target.value })}
+                placeholder="وقاية"
+              />
+            </div>
+            <div className="input-group">
+              <label>{i18n.language === 'ar' ? 'اسم الموقع (بالإنجليزية)' : 'Site Title (English)'}</label>
+              <input
+                type="text"
+                value={settings.site_title_en || ''}
+                onChange={e => setSettings({ ...settings, site_title_en: e.target.value })}
+                placeholder="Wiqaiah"
+              />
+            </div>
+            
+            <div className="input-group full-width">
+              <label>{i18n.language === 'ar' ? 'المنطقة الزمنية للمركز' : 'Clinic Timezone'}</label>
+              <select 
+                value={settings.site_timezone || 'Africa/Cairo'}
+                onChange={e => setSettings({ ...settings, site_timezone: e.target.value })}
+              >
+                <option value="Africa/Cairo">Cairo (GMT+2)</option>
+                <option value="Asia/Riyadh">Riyadh (GMT+3)</option>
+                <option value="Asia/Dubai">Dubai (GMT+4)</option>
+                <option value="UTC">UTC</option>
+                <option value="Europe/London">London (GMT+0)</option>
+              </select>
+              <small className="help-text">
+                {i18n.language === 'ar' ? 'سيتم تحويل المواعيد للمستخدمين بناءً على هذه المنطقة.' : 'Available slots will be converted for users based on this timezone.'}
+              </small>
             </div>
 
             {/* Booking confirmation email template */}

@@ -11,6 +11,18 @@ const ManageAvailability = () => {
   const [syncing, setSyncing] = useState(false);
   
   const [newTemplate, setNewTemplate] = useState({ day_of_week: 1, start_time: '', end_time: '' });
+  const [newSlot, setNewSlot] = useState({ date: '', start_time: '10:00', end_time: '10:45', repeat_weekly: false });
+
+  const timeSlots = Array.from({ length: 20 }).map((_, i) => {
+    const startHour = 8 + Math.floor(i * 45 / 60);
+    const startMin = (i * 45) % 60;
+    const endTotalMin = (i + 1) * 45;
+    const endHour = 8 + Math.floor(endTotalMin / 60);
+    const endMin = endTotalMin % 60;
+    
+    const fmt = (h, m) => `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    return { start: fmt(startHour, startMin), end: fmt(endHour, endMin) };
+  });
 
   const days = t('dashboard.avail.days', { returnObjects: true });
 
@@ -36,6 +48,36 @@ const ManageAvailability = () => {
     const { error } = await supabase.from('availability_templates').insert([newTemplate]);
     if (!error) {
       setNewTemplate({ ...newTemplate, start_time: '', end_time: '' });
+      fetchData();
+    }
+  };
+
+  const handleAddSlot = async (e) => {
+    e.preventDefault();
+    if (!newSlot.date || !newSlot.start_time || !newSlot.end_time) return;
+
+    const slotPayload = {
+      date: newSlot.date,
+      start_time: newSlot.start_time,
+      end_time: newSlot.end_time,
+      is_booked: false
+    };
+
+    const { error: slotError } = await supabase.from('availability').insert([slotPayload]);
+    
+    if (newSlot.repeat_weekly) {
+      const dateObj = new Date(newSlot.date);
+      const dayOfWeek = dateObj.getDay(); // 0 is Sunday, 1 is Monday...
+      // Map JS day to our DB day (assuming 0-6)
+      await supabase.from('availability_templates').insert([{
+        day_of_week: dayOfWeek,
+        start_time: newSlot.start_time,
+        end_time: newSlot.end_time
+      }]);
+    }
+
+    if (!slotError) {
+      setNewSlot({ ...newSlot, repeat_weekly: false });
       fetchData();
     }
   };
@@ -138,6 +180,54 @@ const ManageAvailability = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* SECTION 2: ADD MANUAL SLOT */}
+      <div className="dashboard-card mb-4">
+        <h3 className="section-title-dash"><Plus size={18} /> {i18n.language === 'ar' ? 'إضافة ميعاد محدد' : 'Add Specific Slot'}</h3>
+        <form onSubmit={handleAddSlot} className="add-slot-form bg-soft p-4 rounded-xl">
+          <div className="form-grid">
+            <div className="input-group">
+              <label>{t('dashboard.bookings.date')}</label>
+              <input 
+                type="date" required 
+                value={newSlot.date}
+                onChange={e => setNewSlot({...newSlot, date: e.target.value})}
+              />
+            </div>
+            <div className="input-group">
+              <label>{i18n.language === 'ar' ? 'الميعاد' : 'Time Interval'}</label>
+              <select 
+                value={`${newSlot.start_time}-${newSlot.end_time}`}
+                onChange={e => {
+                  const [start, end] = e.target.value.split('-');
+                  setNewSlot({...newSlot, start_time: start, end_time: end});
+                }}
+              >
+                {timeSlots.map((ts, idx) => (
+                  <option key={idx} value={`${ts.start}-${ts.end}`}>
+                    {ts.start} - {ts.end}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="input-group checkbox-row mt-6">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={newSlot.repeat_weekly}
+                  onChange={e => setNewSlot({...newSlot, repeat_weekly: e.target.checked})}
+                />
+                <span>{i18n.language === 'ar' ? 'تكرار أسبوعياً' : 'Repeat Weekly'}</span>
+              </label>
+            </div>
+            <div className="input-group flex-end">
+               <button type="submit" className="primary-btn add-btn">
+                 {i18n.language === 'ar' ? 'إضافة الموعد' : 'Add Slot'}
+               </button>
+            </div>
+          </div>
+        </form>
       </div>
 
       {/* SECTION 3: CURRENT SLOTS LIST */}

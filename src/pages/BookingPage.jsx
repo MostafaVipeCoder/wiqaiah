@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { Calendar, Clock, CheckCircle, ChevronLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { usePageContent } from '../hooks/usePageContent';
+import { useSiteSettings } from '../hooks/useSiteSettings';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import toast from 'react-hot-toast';
 import './BookingPage.css';
 import '../components/HowItWorks.css';
@@ -14,6 +18,41 @@ const BookingPage = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', reason: '' });
   const [submitted, setSubmitted] = useState(false);
+  const { get } = usePageContent('confirmations');
+  const theme = useSiteSettings();
+  const lang = i18n.language === 'ar' ? 'ar' : 'en';
+
+  // Timezone conversion helper
+  const getLocalTime = (dateStr, timeStr) => {
+    try {
+      // Create a formatter for the Admin's timezone
+      const adminTz = theme.site_timezone || 'Africa/Cairo';
+      
+      // Step 1: Get the current date in Admin TZ to find offset correctly
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: adminTz,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      });
+      
+      // We want to find the UTC time that corresponds to (dateStr + timeStr) in adminTz
+      // A simple way: find the offset of adminTz at that moment
+      const parts = formatter.formatToParts(new Date(`${dateStr}T${timeStr}`));
+      const dateMap = {};
+      parts.forEach(p => dateMap[p.type] = p.value);
+      
+      const adminDate = new Date(`${dateMap.year}-${dateMap.month}-${dateMap.day}T${dateMap.hour}:${dateMap.minute}:${dateMap.second}`);
+      const diff = adminDate.getTime() - new Date(`${dateStr}T${timeStr}`).getTime();
+      
+      // Adjust the input time to get the absolute UTC time
+      const utcTime = new Date(new Date(`${dateStr}T${timeStr}`).getTime() - diff);
+      
+      return utcTime;
+    } catch (e) {
+      return new Date(`${dateStr}T${timeStr}`);
+    }
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -65,8 +104,8 @@ const BookingPage = () => {
       <div className="booking-status-page container section-padding">
         <div className="status-card">
           <CheckCircle size={64} color="var(--brand-primary)" />
-          <h2>{i18n.language === 'ar' ? 'تم استلام طلبك!' : 'Request Sent!'}</h2>
-          <p>{i18n.language === 'ar' ? 'شكراً لك. سيقوم الدكتور بمراجعة الطلب وسيصلك إيميل بالتفاصيل قريباً.' : 'Thank you. Dr. Muhammad will review your request and you will receive an email confirmation soon.'}</p>
+          <h2>{get('booking_success_title', lang, i18n.language === 'ar' ? 'تم استلام طلبك!' : 'Request Sent!')}</h2>
+          <p>{get('booking_success_message', lang, i18n.language === 'ar' ? 'شكراً لك. سيقوم الدكتور بمراجعة الطلب وسيصلك إيميل بالتفاصيل قريباً.' : 'Thank you. Dr. Muhammad will review your request and you will receive an email confirmation soon.')}</p>
           <Link to="/" className="primary-btn">{i18n.language === 'ar' ? 'العودة للرئيسية' : 'Back to Home'}</Link>
         </div>
       </div>
@@ -118,8 +157,21 @@ const BookingPage = () => {
                   className={`slot-item ${selectedSlot?.id === slot.id ? 'active' : ''}`}
                   onClick={() => setSelectedSlot(slot)}
                 >
-                  <div className="slot-date">{new Date(slot.date).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}</div>
-                  <div className="slot-time"><Clock size={14} /> {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}</div>
+                  <div className="slot-date">
+                    {(() => {
+                      const localDate = getLocalTime(slot.date, slot.start_time);
+                      return localDate.toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' });
+                    })()}
+                  </div>
+                  <div className="slot-time">
+                    <Clock size={14} /> 
+                    {(() => {
+                      const start = getLocalTime(slot.date, slot.start_time);
+                      const end = getLocalTime(slot.date, slot.end_time);
+                      const fmt = { hour: '2-digit', minute: '2-digit', hour12: false };
+                      return `${start.toLocaleTimeString([], fmt)} - ${end.toLocaleTimeString([], fmt)}`;
+                    })()}
+                  </div>
                 </button>
               ))}
             </div>
@@ -143,11 +195,14 @@ const BookingPage = () => {
                 </div>
                 <div className="summary-details">
                    <h4>{i18n.language === 'ar' ? 'الموعد المختار' : 'Selected Slot'}</h4>
-                   <p>
-                     {new Date(selectedSlot.date).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })}
-                     {" · "}
-                     {selectedSlot.start_time.slice(0, 5)} - {selectedSlot.end_time.slice(0, 5)}
-                   </p>
+                    <p>
+                      {(() => {
+                        const local = getLocalTime(selectedSlot.date, selectedSlot.start_time);
+                        const end = getLocalTime(selectedSlot.date, selectedSlot.end_time);
+                        const fmt = { hour: '2-digit', minute: '2-digit', hour12: false };
+                        return `${local.toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' })} · ${local.toLocaleTimeString([], fmt)} - ${end.toLocaleTimeString([], fmt)}`;
+                      })()}
+                    </p>
                 </div>
               </div>
 
@@ -172,12 +227,20 @@ const BookingPage = () => {
                 </div>
                 <div className="input-group">
                   <label>{i18n.language === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
-                  <input 
-                    type="tel" required 
+                  <PhoneInput
+                    country={'eg'}
                     value={formData.phone}
-                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    onChange={phone => setFormData({...formData, phone})}
                     placeholder="+20 123 456 7890"
-                    dir="ltr"
+                    specialLabel=""
+                    inputProps={{
+                      name: 'phone',
+                      required: true,
+                    }}
+                    containerClass="phone-input-container"
+                    inputClass="phone-input-field"
+                    buttonClass="phone-input-button"
+                    searchPlaceholder={i18n.language === 'ar' ? 'بحث عن دولة' : 'Search country'}
                   />
                 </div>
                 <div className="input-group">

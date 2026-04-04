@@ -3,12 +3,13 @@ import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import {
   FileText, Save, CheckCircle2, AlertCircle, Plus, Trash2,
-  ChevronRight, Globe, Type, DollarSign
+  ChevronRight, Globe, Type, DollarSign, Upload, Image as ImageIcon
 } from 'lucide-react';
 
 const SECTIONS = [
   { key: 'pricing',      label: 'Pricing & Discounts', labelAr: 'الأسعار والخصومات', special: true },
   { key: 'hero',         label: 'Hero Section',         labelAr: 'القسم الرئيسي' },
+  { key: 'confirmations', label: 'Confirmation Messages', labelAr: 'رسائل التأكيد' },
   { key: 'benefits',     label: 'Benefits',             labelAr: 'الفوائد' },
   { key: 'who_its_for',  label: "Who It's For",         labelAr: 'من هو المستفيد' },
   { key: 'how_it_works', label: 'How It Works',         labelAr: 'كيف تعمل الخدمة' },
@@ -208,6 +209,55 @@ const ManageContent = () => {
     setSaving(false);
   };
 
+  const handleImageUpload = async (id, file) => {
+    if (!file) return;
+    setLoading(true);
+    setMessage({ type: '', text: '' });
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${activeSection}/${fileName}`;
+
+    console.log('Uploading image to content-images:', filePath);
+
+    const { error: uploadError } = await supabase.storage
+      .from('content-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      console.error('Storage Upload Error:', uploadError);
+      setMessage({ type: 'error', text: 'خطأ في رفع الصورة: ' + (uploadError.message || 'فشل الاتصال بمزود الخدمة') });
+      setLoading(false);
+      return;
+    }
+
+    const { data } = supabase.storage.from('content-images').getPublicUrl(filePath);
+    const publicUrl = data.publicUrl;
+    console.log('Generated Public URL:', publicUrl);
+
+    if (!publicUrl || !publicUrl.includes('/public/')) {
+       console.error('Malformed public URL generated:', publicUrl);
+       setMessage({ type: 'error', text: 'خطأ في توليد رابط الصورة. يرجى المحاولة مرة أخرى.' });
+       setLoading(false);
+       return;
+    }
+
+    // Update locally and in DB immediately for images
+    const { error: dbError } = await supabase
+      .from('page_content')
+      .update({ value_en: publicUrl, value_ar: publicUrl, updated_at: new Date() })
+      .eq('id', id);
+
+    if (!dbError) {
+      setRows(prev => prev.map(r => r.id === id ? { ...r, value_en: publicUrl, value_ar: publicUrl } : r));
+      setMessage({ type: 'success', text: 'تم رفع الصورة وحفظها بنجاح! ✓' });
+    } else {
+      console.error('Database Update Error:', dbError);
+      setMessage({ type: 'error', text: 'تم رفع الصورة ولكن فشل حفظها في قاعدة البيانات.' });
+    }
+    setLoading(false);
+  };
+
   const handleAddItem = async () => {
     const prefix = LIST_KEY_PREFIXES[activeSection];
     if (!prefix) return;
@@ -268,7 +318,7 @@ const ManageContent = () => {
       }));
       return (
         <>
-          {normalRows.map(row => <FieldRow key={row.id} row={row} onChange={handleChange} showDelete={false} />)}
+          {normalRows.map(row => <FieldRow key={row.id} row={row} onChange={handleChange} onImageUpload={handleImageUpload} showDelete={false} />)}
           {stepRows.map(({ num, title, text }) => (
             <div key={num} className="cms-step-group">
               <div className="cms-step-header">
@@ -278,8 +328,8 @@ const ManageContent = () => {
                   if (text) handleDelete(text.id, text.key);
                 }}><Trash2 size={14} /></button>
               </div>
-              {title && <FieldRow row={title} onChange={handleChange} showDelete={false} labelOverride="Title" />}
-              {text && <FieldRow row={text} onChange={handleChange} showDelete={false} labelOverride="Text" />}
+              {title && <FieldRow row={title} onChange={handleChange} onImageUpload={handleImageUpload} showDelete={false} labelOverride="Title" />}
+              {text && <FieldRow row={text} onChange={handleChange} onImageUpload={handleImageUpload} showDelete={false} labelOverride="Text" />}
             </div>
           ))}
         </>
@@ -292,6 +342,7 @@ const ManageContent = () => {
         row={row}
         onChange={handleChange}
         onDelete={() => handleDelete(row.id, row.key)}
+        onImageUpload={handleImageUpload}
         showDelete={prefix && row.key.startsWith(prefix)}
       />
     ));
@@ -389,10 +440,46 @@ const ManageContent = () => {
 };
 
 // ─── FieldRow ─────────────────────────────────────────────────────────────────
-const FieldRow = ({ row, onChange, onDelete, showDelete, labelOverride }) => {
+const FieldRow = ({ row, onChange, onDelete, onImageUpload, showDelete, labelOverride }) => {
   const label = labelOverride || formatKey(row.key);
-  const isTextarea = row.value_en?.length > 80 || row.value_ar?.length > 80
-    || ['content', 'subtitle', 'replaces', 'text', 'disclaimer'].some(k => row.key.includes(k));
+  const isImage = row.key.includes('image_url') || row.key.includes('img_url') || row.key.includes('cover_url');
+  const isTextarea = !isImage && (row.value_en?.length > 80 || row.value_ar?.length > 80
+    || ['content', 'subtitle', 'replaces', 'text', 'disclaimer', 'message'].some(k => row.key.includes(k)));
+
+  if (isImage) {
+    return (
+      <div className="cms-field-row">
+        <div className="cms-field-label">
+           <ImageIcon size={14} />
+           <span>{label}</span>
+        </div>
+        <div className="cms-field-inputs" style={{ gridTemplateColumns: '1fr' }}>
+           <div className="flex items-center gap-4">
+              {row.value_en && (
+                <div className="relative group">
+                  <img src={row.value_en} alt="Preview" className="h-20 w-32 object-cover rounded-lg border-2 border-brand-dark" />
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="relative">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    onChange={e => onImageUpload(row.id, e.target.files[0])}
+                  />
+                  <div className="cms-input flex items-center justify-center gap-2 bg-white border-dashed border-2">
+                    <Upload size={16} />
+                    <span>رفع صورة جديدة</span>
+                  </div>
+                </div>
+                <p className="help-text mt-1">المقاس المفضل: 800x600 بكسل</p>
+              </div>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="cms-field-row">

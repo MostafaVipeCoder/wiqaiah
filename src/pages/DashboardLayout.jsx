@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Menu,
   FileText,
+  Eye,
   X as CloseIcon
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -114,6 +115,14 @@ const DashboardLayout = () => {
            </div>
            
            <div className="header-actions">
+              <button 
+                onClick={() => window.open('/', '_blank')}
+                className="preview-pill"
+                title={i18n.language === 'ar' ? 'معاينة الموقع' : 'Preview Site'}
+              >
+                <Eye size={18} />
+                <span>{i18n.language === 'ar' ? 'معاينة' : 'Preview'}</span>
+              </button>
               <button 
                 onClick={() => i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar')}
                 className="lang-pill"
