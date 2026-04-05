@@ -5,11 +5,13 @@ import { Calendar, Clock, CheckCircle, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { usePageContent } from '../hooks/usePageContent';
 import { useSiteSettings } from '../hooks/useSiteSettings';
-import PhoneInput from 'react-phone-input-2';
+import PhoneInputLib from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import toast from 'react-hot-toast';
 import './BookingPage.css';
 import '../components/HowItWorks.css';
+
+const PhoneInput = PhoneInputLib.default ? PhoneInputLib.default : PhoneInputLib;
 
 const BookingPage = () => {
   const { t, i18n } = useTranslation();
@@ -341,14 +343,17 @@ const BookingPage = () => {
                 </div>
                 <div className="input-group">
                   <label>{isAr ? 'رقم الهاتف' : 'Phone Number'}</label>
-                  <input
-                    type="tel"
-                    required
+                  <PhoneInput
+                    country={'eg'}
                     value={formData.phone}
-                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={phone => setFormData({ ...formData, phone })}
                     placeholder="+20 123 456 7890"
-                    dir="ltr"
-                    className="phone-fallback-input"
+                    specialLabel=""
+                    inputProps={{ name: 'phone', required: true }}
+                    containerClass="phone-input-container"
+                    inputClass="phone-input-field"
+                    buttonClass="phone-input-button"
+                    searchPlaceholder={isAr ? 'بحث عن دولة' : 'Search country'}
                   />
                 </div>
                 <div className="input-group">
