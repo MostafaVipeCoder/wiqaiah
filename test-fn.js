@@ -1,18 +1,12 @@
-const fn = async () => {
-    const response = await fetch('https://vbzqsermgzlcbpsjvihq.supabase.co/functions/v1/send-booking-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: "Test",
-        email: "test@example.com",
-        date: "2023-10-10",
-        startTime: "10:00",
-        meetingLink: "https://zoom.us/j/123"
-      })
-    });
-    const text = await response.text();
-    console.log(response.status, text);
-};
-fn();
+import React from 'react';
+import BookingPage from './src/pages/BookingPage.jsx';
+
+// It is tricky to render react hooks outside a browser or testing environment.
+// But we can just log the exports!
+console.log("BookingPage:", typeof BookingPage);
+
+import * as lucide from 'lucide-react';
+const missing = ['Calendar', 'Clock', 'CheckCircle', 'ChevronLeft', 'X', 'Plus'].filter(x => !lucide[x]);
+console.log("Missing lucide exports:", missing);
+
+console.log("X typeof:", typeof lucide.X, "Plus typeof:", typeof lucide.Plus);
