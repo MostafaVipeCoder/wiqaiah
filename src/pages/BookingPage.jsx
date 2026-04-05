@@ -341,17 +341,14 @@ const BookingPage = () => {
                 </div>
                 <div className="input-group">
                   <label>{isAr ? 'رقم الهاتف' : 'Phone Number'}</label>
-                  <PhoneInput
-                    country={'eg'}
+                  <input
+                    type="tel"
+                    required
                     value={formData.phone}
-                    onChange={phone => setFormData({ ...formData, phone })}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+20 123 456 7890"
-                    specialLabel=""
-                    inputProps={{ name: 'phone', required: true }}
-                    containerClass="phone-input-container"
-                    inputClass="phone-input-field"
-                    buttonClass="phone-input-button"
-                    searchPlaceholder={isAr ? 'بحث عن دولة' : 'Search country'}
+                    dir="ltr"
+                    className="phone-fallback-input"
                   />
                 </div>
                 <div className="input-group">
