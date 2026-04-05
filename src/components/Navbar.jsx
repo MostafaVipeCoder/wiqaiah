@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, Menu, X } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -19,9 +19,24 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navigate = useNavigate();
+
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'en' ? 'ar' : 'en';
     i18n.changeLanguage(nextLang);
+  };
+
+  const handleNavClick = (e, targetId) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    if (location.pathname === '/') {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/', { state: { scrollTo: targetId } });
+    }
   };
 
   return (
@@ -36,9 +51,9 @@ const Navbar = () => {
         </Link>
 
         <div className={`nav-links ${menuOpen ? 'mobile-open' : ''}`}>
-          <a href={location.pathname === '/' ? '#how' : '/#how'} onClick={() => setMenuOpen(false)} className="nav-link">{t('nav.process')}</a>
-          <a href={location.pathname === '/' ? '#questions' : '/#questions'} onClick={() => setMenuOpen(false)} className="nav-link">{t('nav.faq')}</a>
-          <a href={location.pathname === '/' ? '#sessions' : '/#sessions'} onClick={() => setMenuOpen(false)} className="nav-link">{t('nav.sessions')}</a>
+          <button onClick={(e) => handleNavClick(e, 'how')} className="nav-link nav-btn">{t('nav.process')}</button>
+          <button onClick={(e) => handleNavClick(e, 'questions')} className="nav-link nav-btn">{t('nav.faq')}</button>
+          <button onClick={(e) => handleNavClick(e, 'sessions')} className="nav-link nav-btn">{t('nav.sessions')}</button>
           
           <button onClick={() => {toggleLanguage(); setMenuOpen(false);}} className="lang-switcher">
             <Globe size={18} />
