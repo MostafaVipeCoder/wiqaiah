@@ -119,7 +119,9 @@ const resources = {
         "btn": "Login",
         "logging_in": "Logging in...",
         "success": "Login successful!",
-        "failed": "Login failed. Check your credentials."
+        "failed": "Login failed. Check your credentials.",
+        "unauthorized_title": "Access Denied",
+        "unauthorized_msg": "You do not have administrative privileges."
       },
       "dashboard_nav": {
         "bookings": "Bookings",
@@ -204,7 +206,8 @@ const resources = {
         "error": "An error occurred",
         "save": "Save",
         "cancel": "Cancel",
-        "delete": "Delete"
+        "delete": "Delete",
+        "back_home": "Back to Home"
       }
     }
   },
@@ -324,7 +327,9 @@ const resources = {
         "btn": "دخول",
         "logging_in": "جاري الدخول...",
         "success": "تم الدخول بنجاح!",
-        "failed": "خطأ في الدخول. تأكد من البيانات."
+        "failed": "خطأ في الدخول. تأكد من البيانات.",
+        "unauthorized_title": "تم رفض الدخول",
+        "unauthorized_msg": "ليس لديك صلاحيات المسؤول."
       },
       "dashboard_nav": {
         "bookings": "الحجوزات",
@@ -409,7 +414,8 @@ const resources = {
         "error": "حدث خطأ ما",
         "save": "حفظ",
         "cancel": "إلغاء",
-        "delete": "حذف"
+        "delete": "حذف",
+        "back_home": "العودة للرئيسية"
       }
     }
   }

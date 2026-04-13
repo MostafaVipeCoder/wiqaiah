@@ -10,11 +10,37 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user } = useAuth();
+  const { login, user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
-  if (user) return <Navigate to="/dashboard" />;
+  // ONLY redirect if they are logged in AND an admin
+  if (user && isAdmin) return <Navigate to="/dashboard" />;
+
+  // If logged in but NOT an admin, show unauthorized message instead of looping
+  if (user && !isAdmin) {
+    return (
+      <div className="login-page container section-padding">
+        <div className="login-card animate-fade-up">
+          <img src="logo.svg" alt="Wiqaiah" className="login-logo" />
+          <div className="unauthorized-message" style={{ margin: '20px 0', textAlign: 'center' }}>
+            <h2 style={{ color: '#ef4444', marginBottom: '10px' }}>{t('login_page.unauthorized_title')}</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '15px' }}>{t('login_page.unauthorized_msg')}</p>
+            <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>{user.email}</p>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+            <button onClick={() => logout()} className="primary-btn" style={{ background: '#ef4444' }}>
+              {t('dashboard_nav.logout')}
+            </button>
+            <button onClick={() => navigate('/')} className="secondary-btn">
+              {t('common.back_home')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
