@@ -25,7 +25,13 @@ const LoginPage = () => {
     return (
       <div className="login-page container section-padding">
         <div className="login-card animate-fade-up">
-          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Wiqaiah" className="login-logo" />
+          <img 
+            src={`${import.meta.env.BASE_URL}logo.svg`} 
+            alt="Wiqaiah" 
+            className="login-logo" 
+            height="50"
+            style={{ height: '50px' }}
+          />
           <div className="unauthorized-message" style={{ margin: '20px 0', textAlign: 'center' }}>
             <h2 style={{ color: '#ef4444', marginBottom: '10px' }}>{t('login_page.unauthorized_title')}</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '15px' }}>{t('login_page.unauthorized_msg')}</p>
@@ -68,7 +74,13 @@ const LoginPage = () => {
   return (
     <div className="login-page container section-padding">
       <div className="login-card animate-fade-up">
-        <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Wiqaiah" className="login-logo" />
+        <img 
+          src={`${import.meta.env.BASE_URL}logo.svg`} 
+          alt="Wiqaiah" 
+          className="login-logo" 
+          height="50"
+          style={{ height: '50px' }}
+        />
         <h2>{t('login_page.title')}</h2>
         <p>{t('login_page.subtitle')}</p>
         

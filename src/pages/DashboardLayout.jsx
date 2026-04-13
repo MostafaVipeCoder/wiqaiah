@@ -65,7 +65,13 @@ const DashboardLayout = () => {
       <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-header-top">
-            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Wiqaiah" className="sidebar-logo" />
+            <img 
+              src={`${import.meta.env.BASE_URL}logo.svg`} 
+              alt="Wiqaiah" 
+              className="sidebar-logo" 
+              height="50"
+              style={{ height: '50px' }}
+            />
             <button 
               className="close-sidebar-btn"
               onClick={() => setIsMobileMenuOpen(false)}
