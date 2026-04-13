@@ -10,15 +10,18 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, user, isAdmin, logout } = useAuth();
+  const { login, user, isAdmin, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+
+  // If we are still checking admin status, show nothing or a subtle loader to prevent flicker
+  if (authLoading && user) return null;
 
   // ONLY redirect if they are logged in AND an admin
   if (user && isAdmin) return <Navigate to="/dashboard" />;
 
-  // If logged in but NOT an admin, show unauthorized message instead of looping
-  if (user && !isAdmin) {
+  // If logged in but NOT an admin, and NOT loading, show unauthorized message
+  if (user && !isAdmin && !authLoading) {
     return (
       <div className="login-page container section-padding">
         <div className="login-card animate-fade-up">
