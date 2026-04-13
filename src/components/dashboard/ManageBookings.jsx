@@ -68,15 +68,30 @@ const ManageBookings = () => {
     const dateStr = new Date(booking.availability?.date).toLocaleDateString(isAr ? 'ar-EG' : 'en-US');
     const timeStr = `${booking.availability?.start_time?.slice(0, 5)} - ${booking.availability?.end_time?.slice(0, 5)}`;
     
-    return template
-      .replace(/\[Patient Name\]/gi, booking.name || '')
-      .replace(/\[اسم المريض\]/gi, booking.name || '')
-      .replace(/\[Date\]/gi, dateStr)
-      .replace(/\[التاريخ\]/gi, dateStr)
-      .replace(/\[Time\]/gi, timeStr)
-      .replace(/\[الوقت\]/gi, timeStr)
-      .replace(/\[Link\]/gi, link || '')
-      .replace(/\[الرابط\]/gi, link || '');
+    let result = template;
+    
+    // Define mapping for all possible placeholder styles
+    const replacements = {
+      name: booking.name || '',
+      'اسم المريض': booking.name || '',
+      'Patient Name': booking.name || '',
+      date: dateStr,
+      'التاريخ': dateStr,
+      time: timeStr,
+      'الوقت': timeStr,
+      link: link || '',
+      'الرابط': link || ''
+    };
+
+    // Replace both {key} and [key] formats
+    Object.entries(replacements).forEach(([key, value]) => {
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const curlyRegex = new RegExp(`\\{${escapedKey}\\}`, 'gi');
+      const squareRegex = new RegExp(`\\[${escapedKey}\\]`, 'gi');
+      result = result.replace(curlyRegex, value).replace(squareRegex, value);
+    });
+
+    return result;
   };
 
   /**
