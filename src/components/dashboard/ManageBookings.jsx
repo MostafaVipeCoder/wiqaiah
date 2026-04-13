@@ -176,9 +176,19 @@ const ManageBookings = () => {
                   <tr key={booking.id}>
                     <td>
                       <div className="patient-info">
-                        <strong>{booking.name}</strong>
-                        <span><Mail size={12} /> {booking.email}</span>
-                        {booking.phone && <span><Phone size={12} /> {booking.phone}</span>}
+                        <div className="patient-name">{booking.name}</div>
+                        <div className="patient-contact">
+                          <div className="contact-item">
+                            <Mail size={12} />
+                            <span>{booking.email}</span>
+                          </div>
+                          {booking.phone && (
+                            <div className="contact-item">
+                              <Phone size={12} />
+                              <span>{booking.phone}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td>
