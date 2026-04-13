@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const isInitialized = React.useRef(false);
+
 
   const checkAdmin = async (email) => {
     console.log('Checking admin status for:', email);
@@ -35,8 +35,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (isInitialized.current) return;
-    isInitialized.current = true;
+
 
     // Get session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
