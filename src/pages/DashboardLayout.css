@@ -14,9 +14,9 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  position: relative;
+  min-height: 100vh;
+  height: auto;
   z-index: 100;
 }
 
@@ -105,7 +105,7 @@
   box-shadow: 0 4px 12px rgba(36, 188, 171, 0.2);
 }
 
-.dashboard-content { padding: 40px; flex: 1; overflow-y: auto; }
+.dashboard-content { padding: 40px; flex: 1; }
 
 /* Table and Card Overrides for Dashboard */
 .dashboard-card { background: var(--white); padding: 32px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 24px; }
