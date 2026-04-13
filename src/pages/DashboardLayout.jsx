@@ -24,6 +24,84 @@ const ManageWebinars = lazy(() => import('../components/dashboard/ManageWebinars
 const SiteSettings = lazy(() => import('../components/dashboard/SiteSettings'));
 const ManageContent = lazy(() => import('../components/dashboard/ManageContent'));
 
+const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, navItems, user, handleLogout, t }) => (
+  <>
+    {isMobileMenuOpen && (
+      <div className="sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)} />
+    )}
+    <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+      <div className="sidebar-header">
+        <div className="sidebar-header-top">
+          <img 
+            src={`${import.meta.env.BASE_URL}logo.svg`} 
+            alt="Wiqaiah" 
+            className="sidebar-logo" 
+            height="50"
+            style={{ height: '50px' }}
+          />
+          <button className="close-sidebar-btn" onClick={() => setIsMobileMenuOpen(false)}>
+            <CloseIcon size={24} />
+          </button>
+        </div>
+        <span className="badge-admin">ADMIN</span>
+      </div>
+      
+      <nav className="sidebar-nav">
+        {navItems.map((item) => (
+          <NavLink 
+            key={item.path} 
+            to={item.path} 
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          >
+            <item.icon size={20} />
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="sidebar-footer">
+        <div className="user-info">
+          <p className="user-email">{user?.email}</p>
+        </div>
+        <button onClick={handleLogout} className="logout-btn">
+          <LogOut size={18} />
+          <span>{t('dashboard_nav.logout')}</span>
+        </button>
+      </div>
+    </aside>
+  </>
+);
+
+const Header = ({ setIsMobileMenuOpen, currentLabel, t, i18n }) => (
+  <header className="dashboard-header">
+    <div className="header-breadcrumbs">
+      <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+        <Menu size={24} />
+      </button>
+      <span className="breadcrumb-root hide-mobile">{t('dashboard_nav.root')}</span>
+      <span className="breadcrumb-sep hide-mobile">/</span>
+      <span className="breadcrumb-current">{currentLabel}</span>
+    </div>
+    
+    <div className="header-actions">
+      <button 
+        onClick={() => window.open(import.meta.env.BASE_URL, '_blank')}
+        className="preview-pill"
+        title={i18n.language === 'ar' ? 'معاينة الموقع' : 'Preview Site'}
+      >
+        <Eye size={18} />
+        <span>{i18n.language === 'ar' ? 'معاينة' : 'Preview'}</span>
+      </button>
+      <button 
+        onClick={() => i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar')}
+        className="lang-pill"
+      >
+        {i18n.language === 'ar' ? 'English' : 'العربية'}
+      </button>
+    </div>
+  </header>
+);
+
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -31,7 +109,6 @@ const DashboardLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
@@ -54,89 +131,22 @@ const DashboardLayout = () => {
 
   return (
     <div className="dashboard-wrapper">
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="sidebar-overlay" 
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-header-top">
-            <img 
-              src={`${import.meta.env.BASE_URL}logo.svg`} 
-              alt="Wiqaiah" 
-              className="sidebar-logo" 
-              height="50"
-              style={{ height: '50px' }}
-            />
-            <button 
-              className="close-sidebar-btn"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <CloseIcon size={24} />
-            </button>
-          </div>
-          <span className="badge-admin">ADMIN</span>
-        </div>
-        
-        <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <NavLink 
-              key={item.path} 
-              to={item.path} 
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            >
-              <item.icon size={20} />
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <p className="user-email">{user?.email}</p>
-          </div>
-          <button onClick={handleLogout} className="logout-btn">
-            <LogOut size={18} />
-            <span>{t('dashboard_nav.logout')}</span>
-          </button>
-        </div>
-      </aside>
+      <Sidebar 
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        navItems={navItems}
+        user={user}
+        handleLogout={handleLogout}
+        t={t}
+      />
 
       <main className="dashboard-main">
-        <header className="dashboard-header">
-           <div className="header-breadcrumbs">
-              <button 
-                className="mobile-menu-btn"
-                onClick={() => setIsMobileMenuOpen(true)}
-              >
-                <Menu size={24} />
-              </button>
-              <span className="breadcrumb-root hide-mobile">{t('dashboard_nav.root')}</span>
-              <span className="breadcrumb-sep hide-mobile">/</span>
-              <span className="breadcrumb-current">{currentLabel}</span>
-           </div>
-           
-           <div className="header-actions">
-              <button 
-                onClick={() => window.open(import.meta.env.BASE_URL, '_blank')}
-                className="preview-pill"
-                title={i18n.language === 'ar' ? 'معاينة الموقع' : 'Preview Site'}
-              >
-                <Eye size={18} />
-                <span>{i18n.language === 'ar' ? 'معاينة' : 'Preview'}</span>
-              </button>
-              <button 
-                onClick={() => i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar')}
-                className="lang-pill"
-              >
-                {i18n.language === 'ar' ? 'English' : 'العربية'}
-              </button>
-           </div>
-        </header>
+        <Header 
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+          currentLabel={currentLabel}
+          t={t}
+          i18n={i18n}
+        />
 
         <div className="dashboard-content">
           <Suspense fallback={<LoadingSpinner />}>

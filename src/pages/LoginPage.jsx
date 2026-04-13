@@ -5,50 +5,51 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import './LoginPage.css';
 
+const UnauthorizedView = ({ user, logout, navigate, t }) => (
+  <div className="login-page container section-padding">
+    <div className="login-card animate-fade-up">
+      <img 
+        src={`${import.meta.env.BASE_URL}logo.svg`} 
+        alt="Wiqaiah" 
+        className="login-logo" 
+        height="50"
+        style={{ height: '50px' }}
+      />
+      <div className="unauthorized-message" style={{ margin: '20px 0', textAlign: 'center' }}>
+        <h2 style={{ color: '#ef4444', marginBottom: '10px' }}>{t('login_page.unauthorized_title')}</h2>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '15px' }}>{t('login_page.unauthorized_msg')}</p>
+        <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>{user.email}</p>
+      </div>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        <button onClick={() => logout()} className="primary-btn" style={{ background: '#ef4444' }}>
+          {t('dashboard_nav.logout')}
+        </button>
+        <button onClick={() => navigate('/')} className="secondary-btn">
+          {t('common.back_home')}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, user, isAdmin, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
-  // If we are still checking admin status, show nothing or a subtle loader to prevent flicker
-  if (authLoading && user) return null;
-
-  // ONLY redirect if they are logged in AND an admin
+  // Redirect if already admin
   if (user && isAdmin) return <Navigate to="/dashboard" />;
 
-  // If logged in but NOT an admin, and NOT loading, show unauthorized message
+  // Loading state
+  if (authLoading && user) return null;
+
+  // Unauthorized view
   if (user && !isAdmin && !authLoading) {
-    return (
-      <div className="login-page container section-padding">
-        <div className="login-card animate-fade-up">
-          <img 
-            src={`${import.meta.env.BASE_URL}logo.svg`} 
-            alt="Wiqaiah" 
-            className="login-logo" 
-            height="50"
-            style={{ height: '50px' }}
-          />
-          <div className="unauthorized-message" style={{ margin: '20px 0', textAlign: 'center' }}>
-            <h2 style={{ color: '#ef4444', marginBottom: '10px' }}>{t('login_page.unauthorized_title')}</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '15px' }}>{t('login_page.unauthorized_msg')}</p>
-            <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>{user.email}</p>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-            <button onClick={() => logout()} className="primary-btn" style={{ background: '#ef4444' }}>
-              {t('dashboard_nav.logout')}
-            </button>
-            <button onClick={() => navigate('/')} className="secondary-btn">
-              {t('common.back_home')}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <UnauthorizedView user={user} logout={logout} navigate={navigate} t={t} />;
   }
 
   const handleLogin = async (e) => {
