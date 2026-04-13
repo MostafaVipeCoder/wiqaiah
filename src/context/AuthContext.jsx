@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const isInitialized = React.useRef(false);
 
   const checkAdmin = async (email) => {
+    console.log('Checking admin status for:', email);
     setLoading(true);
     if (!email) {
       setIsAdmin(false);
@@ -18,15 +19,19 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       const { data, error } = await supabase.from('admin_users').select('*').eq('email', email).maybeSingle();
+      console.log('Admin check result:', { data, error });
       if (data && !error) {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);
       }
     } catch (err) {
+      console.error('Admin check exception:', err);
       setIsAdmin(false);
+    } finally {
+      setLoading(false);
+      console.log('Auth loading finished.');
     }
-    setLoading(false);
   };
 
   useEffect(() => {
