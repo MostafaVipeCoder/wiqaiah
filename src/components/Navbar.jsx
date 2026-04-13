@@ -44,7 +44,7 @@ const Navbar = () => {
       <div className="container nav-content">
         <Link to="/" className="logo-link">
           <img 
-            src={site_logo_url || "logo.svg"} 
+            src={site_logo_url || `${import.meta.env.BASE_URL}logo.svg`} 
             alt={siteTitle} 
             className="nav-logo-img" 
           />
