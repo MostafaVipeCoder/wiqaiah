@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import nodemailer from "npm:nodemailer";
 
 const GMAIL_USER = Deno.env.get('GMAIL_EMAIL') || 'Abdullah.shaban@athareg.com';
-const GMAIL_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') || 'hjha aiqp dxpm yizi';
+const GMAIL_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD');
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -12,14 +12,17 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req) => {
   const authHeader = req.headers.get('Authorization');
-  const cronSecret = Deno.env.get('CRON_SECRET') || 'Wq_Reminders_2024_Sec';
+  const cronSecret = Deno.env.get('CRON_SECRET');
   
   if (authHeader !== `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` && 
-      authHeader !== `Bearer ${cronSecret}`) {
+      (!cronSecret || authHeader !== `Bearer ${cronSecret}`)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
   try {
+    if (!GMAIL_PASSWORD) {
+      throw new Error('Email credentials not configured in environment variables.');
+    }
     const now = new Date();
     const results = [];
 

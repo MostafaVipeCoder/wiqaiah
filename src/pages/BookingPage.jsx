@@ -114,23 +114,17 @@ const BookingPage = () => {
     const loadingToast = toast.loading(isAr ? 'جاري إرسال طلبك...' : 'Sending request...');
 
     try {
-      // Insert one booking row per selected slot
-      const bookingsPayload = selectedSlots.map(slot => ({
-        availability_id: slot.id,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        reason: formData.reason,
-        status: 'pending',
-      }));
-
-      const { error: bookingError } = await supabase.from('bookings').insert(bookingsPayload);
+      const slotIds = selectedSlots.map(s => s.id);
+      
+      const { error: bookingError } = await supabase.rpc('book_slots', {
+        p_slots: slotIds,
+        p_name: formData.name,
+        p_email: formData.email,
+        p_phone: formData.phone,
+        p_reason: formData.reason || null
+      });
 
       if (bookingError) throw bookingError;
-
-      // Mark all slots as booked
-      const slotIds = selectedSlots.map(s => s.id);
-      await supabase.from('availability').update({ is_booked: true }).in('id', slotIds);
 
       toast.success(
         isAr ? 'تم إرسال طلبات الحجز بنجاح!' : 'Booking requests sent successfully!',

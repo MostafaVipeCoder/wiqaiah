@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import nodemailer from "npm:nodemailer";
 
 const corsHeaders = {
@@ -13,13 +14,29 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { name, email, date, startTime, meetingLink } = await req.json();
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Missing Authorization header');
+    }
 
-    const GMAIL_PASSWORD = 'hjha aiqp dxpm yizi';
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Unauthorized');
+    }
+
+    const { name, email, date, startTime, meetingLink, customMessage } = await req.json();
+
+    const GMAIL_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD');
     const GMAIL_USER = Deno.env.get('GMAIL_EMAIL') || 'Abdullah.shaban@athareg.com'; 
 
-    if (!GMAIL_USER || GMAIL_USER === 'YOUR_GMAIL_HERE@gmail.com') {
-      throw new Error('Gym email not configured in Deno code.');
+    if (!GMAIL_PASSWORD || !GMAIL_USER) {
+      throw new Error('Email credentials not configured in environment variables.');
     }
 
     const transporter = nodemailer.createTransport({
@@ -44,6 +61,7 @@ serve(async (req: Request) => {
             <li style="margin-bottom: 10px;">📅 <strong>التاريخ:</strong> ${date}</li>
             <li style="margin-bottom: 10px;">⏰ <strong>الوقت:</strong> ${startTime}</li>
           </ul>
+          ${customMessage ? `<div style="margin-top: 20px; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">${customMessage}</div>` : ''}
           <div style="text-align: center; margin-top: 30px;">
             <a href="${meetingLink}" style="background-color: #126158; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; display: inline-block;">
               رابط بدء الاستشارة (Meeting Link)
