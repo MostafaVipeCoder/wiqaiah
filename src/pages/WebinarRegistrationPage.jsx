@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { ChevronLeft, ArrowLeft, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { usePageContent } from '../hooks/usePageContent';
-import PhoneInput from 'react-phone-input-2';
+import PhoneInputLib from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import toast from 'react-hot-toast';
 import './WebinarRegistrationPage.css';
+
+const PhoneInput = PhoneInputLib.default ? PhoneInputLib.default : PhoneInputLib;
 
 const WebinarRegistrationPage = () => {
   const { webinarId } = useParams();

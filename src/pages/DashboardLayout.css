@@ -172,7 +172,7 @@
 .delete-btn { background: #FEE2E2; color: #DC2626; border: none; }
 .edit-btn { background: rgba(36, 188, 171, 0.1); color: var(--brand-primary); }
 
-/* Dashboard Forms & Inputs */
+/* Standard Dashboard Forms */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -192,29 +192,6 @@
   gap: 6px;
 }
 
-.summary-btn-action {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid var(--brand-primary);
-  color: var(--brand-primary);
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: fit-content;
-}
-
-.summary-btn-action:hover {
-  background: var(--brand-primary);
-  color: white;
-  box-shadow: 0 4px 10px rgba(36, 188, 171, 0.2);
-}
-
 .input-group input, 
 .input-group select, 
 .input-group textarea {
@@ -229,48 +206,94 @@
   width: 100%;
 }
 
-/* Date/Time specifics for better look */
-.input-group input[type="date"],
-.input-group input[type="time"],
-.input-group input[type="datetime-local"] {
-  min-height: 50px;
-  cursor: pointer;
-}
-
-.input-group input:focus, 
-.input-group select:focus, 
-.input-group textarea:focus {
-  outline: none;
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 0 4px rgba(36, 188, 171, 0.1);
-  background: #fff;
-}
-
-.input-group textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-.checkbox-row {
-  flex-direction: row !important;
-  align-items: center !important;
-  gap: 12px !important;
-}
-
-.checkbox-row input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: var(--brand-primary);
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
-.full-width { grid-column: 1 / -1; }
+/* New Premium Dashboard Forms (Webinars/Bookings) */
+.form-grid-dash {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.input-group-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group-dash label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.input-group-dash input, 
+.input-group-dash select, 
+.input-group-dash textarea {
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 15px;
+  background: #fdfdfd;
+  transition: all 0.2s;
+}
+
+.input-group-dash input:focus, 
+.input-group-dash textarea:focus {
+  border-color: var(--brand-primary);
+  background: white;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(36, 188, 171, 0.1);
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.preview-img-dash {
+  margin-top: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.preview-img-dash img {
+  width: 100%;
+  max-height: 250px;
+  object-fit: cover;
+}
+
+.btn-save-dash {
+  background: var(--brand-primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-save-dash:hover {
+  background: var(--brand-dark);
+}
+
+.btn-cancel-dash {
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
 
 .dashboard-form-footer {
   padding-top: 24px;
