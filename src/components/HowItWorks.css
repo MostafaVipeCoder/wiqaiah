@@ -26,18 +26,18 @@
 
 .step-card {
   background: var(--white);
-  padding: 50px 40px;
-  border-radius: 32px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   transition: var(--transition);
   border: 1px solid var(--border);
   position: relative;
-  overflow: hidden;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100%;
 }
 
 .step-card::before {
@@ -59,21 +59,25 @@
 .step-card:hover::before { opacity: 1; }
 
 .step-num {
-  font-size: 80px;
-  font-weight: 900;
+  width: 44px;
+  height: 44px;
+  background: rgba(18, 97, 88, 0.08);
   color: var(--brand-primary);
-  opacity: 0.07;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: 20px;
+  right: 20px;
   line-height: 1;
-  pointer-events: none;
-  font-family: 'Inter', sans-serif;
 }
 
 [dir="rtl"] .step-num {
   right: auto;
-  left: -10px;
+  left: 20px;
 }
 
 .step-card h3 {
