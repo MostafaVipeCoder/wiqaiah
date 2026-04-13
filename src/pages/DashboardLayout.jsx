@@ -65,7 +65,7 @@ const DashboardLayout = () => {
       <aside className={`dashboard-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-header-top">
-            <img src="logo.svg" alt="Wiqaiah" className="sidebar-logo" />
+            <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Wiqaiah" className="sidebar-logo" />
             <button 
               className="close-sidebar-btn"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -116,7 +116,7 @@ const DashboardLayout = () => {
            
            <div className="header-actions">
               <button 
-                onClick={() => window.open('/', '_blank')}
+                onClick={() => window.open(import.meta.env.BASE_URL, '_blank')}
                 className="preview-pill"
                 title={i18n.language === 'ar' ? 'معاينة الموقع' : 'Preview Site'}
               >
