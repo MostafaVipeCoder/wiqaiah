@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const isInitialized = React.useRef(false);
 
   const checkAdmin = async (email) => {
+    setLoading(true);
     if (!email) {
       setIsAdmin(false);
       setLoading(false);
