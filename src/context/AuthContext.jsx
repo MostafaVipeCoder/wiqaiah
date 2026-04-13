@@ -69,7 +69,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = (email, password) => supabase.auth.signInWithPassword({ email, password });
   const logout = () => {
-    setIsAdmin(false);
     return supabase.auth.signOut();
   };
 
