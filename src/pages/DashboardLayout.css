@@ -250,6 +250,16 @@
   box-shadow: 0 0 0 4px rgba(36, 188, 171, 0.1);
 }
 
+.input-group-dash input[type="checkbox"] {
+  padding: 0;
+  width: 20px !important;
+  height: 20px !important;
+  cursor: pointer;
+  accent-color: var(--brand-primary);
+  appearance: auto;
+}
+
+
 .full-width {
   grid-column: 1 / -1;
 }
@@ -265,6 +275,27 @@
   width: 100%;
   max-height: 250px;
   object-fit: cover;
+}
+
+.primary-btn-dash {
+  background: var(--brand-primary);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(36, 188, 171, 0.2);
+}
+
+.primary-btn-dash:hover {
+  background: var(--brand-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(36, 188, 171, 0.3);
 }
 
 .btn-save-dash {
