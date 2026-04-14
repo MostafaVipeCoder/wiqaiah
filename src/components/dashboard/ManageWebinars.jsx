@@ -286,6 +286,18 @@ const ManageWebinars = () => {
                  <label>{t('dashboard.webinars.confirmation_email')}</label>
                  <textarea value={formData.confirmation_email_content || ''} onChange={e => setFormData({...formData, confirmation_email_content: e.target.value})} rows={3} />
                </div>
+               <div className="input-group-dash full-width" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
+                 <input 
+                   type="checkbox" 
+                   id="is_published" 
+                   checked={formData.is_published} 
+                   onChange={e => setFormData({...formData, is_published: e.target.checked})} 
+                   style={{ width: '20px', height: '20px', cursor: 'pointer', margin: 0 }} 
+                 />
+                 <label htmlFor="is_published" style={{ marginBottom: 0, cursor: 'pointer' }}>
+                   {isAr ? 'نشر الندوة (ظهور للجمهور)' : 'Publish Webinar (Visible to public)'}
+                 </label>
+               </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button type="button" onClick={() => { setShowAddForm(false); setEditingWebinar(null); }} className="btn-cancel-dash">{t('dashboard.bookings.cancel')}</button>
