@@ -55,8 +55,10 @@ serve(async (req: Request) => {
           <h2 style="margin: 0;">تأكيد حجز الاستشارة</h2>
         </div>
         <div style="padding: 20px; background-color: #fcfcfc;">
-          <p style="font-size: 16px;">مرحباً <strong>${name}</strong>،</p>
-          <p style="font-size: 16px;">يسعدنا إخبارك بأنه تم تأكيد حجز موعدك بنجاح!</p>
+          ${!customMessage ? `
+            <p style="font-size: 16px;">مرحباً <strong>${name}</strong>،</p>
+            <p style="font-size: 16px;">يسعدنا إخبارك بأنه تم تأكيد حجز موعدك بنجاح!</p>
+          ` : ''}
           <ul style="list-style: none; padding: 0; font-size: 16px; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
             <li style="margin-bottom: 10px;">📅 <strong>التاريخ:</strong> ${date}</li>
             <li style="margin-bottom: 10px;">⏰ <strong>الوقت:</strong> ${startTime}</li>
