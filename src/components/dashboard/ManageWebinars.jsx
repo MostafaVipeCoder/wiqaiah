@@ -298,7 +298,7 @@ const ManageWebinars = () => {
       )}
 
       <div className="dashboard-card">
-        {loading ? <div className="loading-state-dash"><div className="spinner"></div></div> : (
+        {loading ? <div className="loading-state-dash"></div> : (
           <div className="table-responsive">
             <table className="dash-table">
               <thead>

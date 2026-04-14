@@ -209,7 +209,6 @@ const ManageBookings = () => {
 
         {loading && bookings.length === 0 ? (
           <div className="loading-state-dash">
-            <div className="spinner"></div>
             <p>{t('common.loading')}</p>
           </div>
         ) : (
