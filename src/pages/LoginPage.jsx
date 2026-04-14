@@ -36,6 +36,7 @@ const UnauthorizedView = ({ user, logout, navigate, t }) => (
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, user, isAdmin, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -65,9 +66,11 @@ const LoginPage = () => {
       error: t('login_page.failed'),
     });
 
-    const { error } = await loginPromise;
-    if (!error) {
+    const { error: loginError } = await loginPromise;
+    if (!loginError) {
       navigate('/dashboard');
+    } else {
+      setError(loginError.message || 'Login failed');
     }
     setLoading(false);
   };
@@ -84,6 +87,8 @@ const LoginPage = () => {
         />
         <h2>{t('login_page.title')}</h2>
         <p>{t('login_page.subtitle')}</p>
+        
+        {error && <div className="error-alert animate-shake">{error}</div>}
         
         <form onSubmit={handleLogin} className="login-form">
           <div className="input-group">

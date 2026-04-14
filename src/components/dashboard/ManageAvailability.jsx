@@ -1,275 +1,356 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Plus, Calendar as CalIcon, Clock, RefreshCw } from 'lucide-react';
+import { 
+  Trash2, Plus, Calendar as CalIcon, Clock, RefreshCw, 
+  Settings, Info, Save, X, Check, ArrowRight, ArrowLeft 
+} from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import './ManageAvailability.css';
 
 const ManageAvailability = () => {
   const { t, i18n } = useTranslation();
-  const [slots, setSlots] = useState([]);
-  const [templates, setTemplates] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
+  const isAr = i18n.language === 'ar';
   
-  const [newTemplate, setNewTemplate] = useState({ day_of_week: 1, start_time: '', end_time: '' });
-  const [newSlot, setNewSlot] = useState({ date: '', start_time: '10:00', end_time: '10:45', repeat_weekly: false });
-
-  const timeSlots = Array.from({ length: 20 }).map((_, i) => {
-    const startHour = 8 + Math.floor(i * 45 / 60);
-    const startMin = (i * 45) % 60;
-    const endTotalMin = (i + 1) * 45;
-    const endHour = 8 + Math.floor(endTotalMin / 60);
-    const endMin = endTotalMin % 60;
-    
-    const fmt = (h, m) => `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-    return { start: fmt(startHour, startMin), end: fmt(endHour, endMin) };
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [templates, setTemplates] = useState([]);
+  const [settings, setSettings] = useState({
+    service_name_ar: '',
+    service_name_en: '',
+    service_duration: 45,
+    buffer_time: 15,
+    max_daily_bookings: 4,
+    min_notice_hours: 6,
+    max_future_weeks: 1,
+    is_service_public: true
   });
 
-  const days = t('dashboard.avail.days', { returnObjects: true });
+  // Days Order: Sat to Fri
+  const dayOrder = [6, 0, 1, 2, 3, 4, 5]; 
+  const dayNames = isAr 
+    ? ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة']
+    : ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
+  const hours = Array.from({ length: 15 }).map((_, i) => 8 + i); // 8:00 to 22:00
+
+  // ── Data Fetching ──────────────────────────────────────────────────────────
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
-    const [slotsRes, templatesRes] = await Promise.all([
-      supabase.from('availability').select('*').order('date', { ascending: true }).order('start_time', { ascending: true }),
-      supabase.from('availability_templates').select('*').order('day_of_week', { ascending: true }).order('start_time', { ascending: true })
-    ]);
+    try {
+      const { data: setRes } = await supabase.from('site_settings').select('*').single();
+      if (setRes) setSettings(setRes);
 
-    if (!slotsRes.error) setSlots(slotsRes.data || []);
-    if (!templatesRes.error) setTemplates(templatesRes.data || []);
-    setLoading(false);
-  };
-
-  const handleAddTemplate = async (e) => {
-    e.preventDefault();
-    if (!newTemplate.start_time || !newTemplate.end_time) return;
-    const { error } = await supabase.from('availability_templates').insert([newTemplate]);
-    if (!error) {
-      setNewTemplate({ ...newTemplate, start_time: '', end_time: '' });
-      fetchData();
+      const { data: tempRes } = await supabase
+        .from('availability_templates')
+        .select('*')
+        .order('start_time', { ascending: true });
+      if (tempRes) setTemplates(tempRes);
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddSlot = async (e) => {
-    e.preventDefault();
-    if (!newSlot.date || !newSlot.start_time || !newSlot.end_time) return;
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('site_settings')
+        .update(settings)
+        .eq('id', settings.id);
+      
+      if (error) throw error;
+      toast.success(t('dashboard.avail.save_success'));
+    } catch (err) {
+      toast.error(t('dashboard.avail.save_error'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    const slotPayload = {
-      date: newSlot.date,
-      start_time: newSlot.start_time,
-      end_time: newSlot.end_time,
-      is_booked: false
-    };
-
-    const { error: slotError } = await supabase.from('availability').insert([slotPayload]);
+  const toggleDayAvailability = async (dayIdx) => {
+    const dayTemplates = templates.filter(t => t.day_of_week === dayIdx);
+    const wasActive = dayTemplates.length > 0;
     
-    if (newSlot.repeat_weekly) {
-      const dateObj = new Date(newSlot.date);
-      const dayOfWeek = dateObj.getDay(); // 0 is Sunday, 1 is Monday...
-      // Map JS day to our DB day (assuming 0-6)
-      await supabase.from('availability_templates').insert([{
-        day_of_week: dayOfWeek,
-        start_time: newSlot.start_time,
-        end_time: newSlot.end_time
-      }]);
-    }
-
-    if (!slotError) {
-      setNewSlot({ ...newSlot, repeat_weekly: false });
-      fetchData();
+    // Optimistic Update
+    if (wasActive) {
+      setTemplates(prev => prev.filter(t => t.day_of_week !== dayIdx));
+      const { error } = await supabase.from('availability_templates').delete().eq('day_of_week', dayIdx);
+      if (error) fetchData(); // Rollback
+    } else {
+      const newTemp = { id: `temp-${Date.now()}`, day_of_week: dayIdx, start_time: '09:00:00', end_time: '17:00:00' };
+      setTemplates(prev => [...prev, newTemp]);
+      const { data, error } = await supabase.from('availability_templates').insert([{
+        day_of_week: dayIdx,
+        start_time: '09:00',
+        end_time: '17:00'
+      }]).select();
+      
+      if (error) {
+        fetchData(); // Rollback
+      } else {
+        // Replace temp ID with real ID
+        setTemplates(prev => prev.map(t => t.id === newTemp.id ? data[0] : t));
+      }
     }
   };
 
-  const handleDeleteSlot = async (id) => {
-    const { error } = await supabase.from('availability').delete().eq('id', id);
-    if (!error) fetchData();
+  const addTimeRange = async (dayIdx) => {
+    const newTemp = { id: `temp-${Date.now()}`, day_of_week: dayIdx, start_time: '17:00:00', end_time: '20:00:00' };
+    setTemplates(prev => [...prev, newTemp]);
+    
+    const { data, error } = await supabase.from('availability_templates').insert([{
+      day_of_week: dayIdx,
+      start_time: '17:00',
+      end_time: '20:00'
+    }]).select();
+    
+    if (error) {
+      fetchData(); // Rollback
+    } else {
+      setTemplates(prev => prev.map(t => t.id === newTemp.id ? data[0] : t));
+    }
   };
 
-  const handleDeleteTemplate = async (id) => {
+  const removeTemplate = async (id) => {
+    setTemplates(prev => prev.filter(t => t.id !== id));
     const { error } = await supabase.from('availability_templates').delete().eq('id', id);
-    if (!error) fetchData();
+    if (error) fetchData(); // Rollback
   };
 
-  const handleSync = async () => {
-    setSyncing(true);
-    const { error } = await supabase.rpc('replicate_availability_for_next_week');
-    if (error) alert('Error syncing: ' + error.message);
-    else fetchData();
-    setSyncing(false);
+  const updateTemplateTime = async (id, field, value) => {
+    // Optimistic update
+    setTemplates(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
+    
+    const { error } = await supabase
+      .from('availability_templates')
+      .update({ [field]: value })
+      .eq('id', id);
+    
+    if (error) {
+      toast.error(t('common.error'));
+      fetchData(); // Rollback
+    }
   };
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const getTemplatesForDay = (dayIdx) => templates.filter(t => t.day_of_week === dayIdx);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+  if (loading) return <div className="p-8 text-center">{t('common.loading')}</div>;
 
   return (
-    <div className="dashboard-content-inner animate-fade-in" dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
-      
-      {/* SECTION 1: WEEKLY TEMPLATES */}
-      <div className="dashboard-card mb-4">
-        <div className="flex-between mb-4">
-          <div>
-            <h3 className="section-title-dash"><RefreshCw size={18} /> {t('dashboard.avail.templates_title')}</h3>
-            <p className="help-text">{t('dashboard.avail.templates_desc')}</p>
-          </div>
-          <button 
-            onClick={handleSync} 
-            disabled={syncing}
-            className="secondary-btn flex gap-2 items-center"
-          >
-            <RefreshCw size={14} className={syncing ? 'animate-spin' : ''} />
-            {t('dashboard.avail.sync_btn')}
-          </button>
+    <div className="dashboard-content-inner animate-fade-in" dir={isAr ? 'rtl' : 'ltr'}>
+      <header className="flex-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold">{t('dashboard.avail.root_title')}</h2>
+          <p className="text-slate-500">{t('dashboard.avail.root_subtitle')}</p>
         </div>
+      </header>
 
-        <form onSubmit={handleAddTemplate} className="add-slot-form mb-4 bg-soft p-4 rounded-xl">
-          <div className="form-grid">
-            <div className="input-group">
-              <label>{t('dashboard.avail.day')}</label>
-              <select 
-                value={newTemplate.day_of_week}
-                onChange={e => setNewTemplate({...newTemplate, day_of_week: parseInt(e.target.value)})}
-              >
-                {days.map((day, idx) => <option key={idx} value={idx}>{day}</option>)}
-              </select>
+      <div className="availability-layout">
+        
+        {/* LEFT COLUMN: Time Grid View */}
+        <div className="calendar-grid-container">
+          <div className="calendar-header">
+            <div className="flex items-center gap-4">
+              <button className="p-2 hover:bg-slate-100 rounded-full"><ArrowLeft size={18} /></button>
+              <span className="font-semibold text-lg">{new Date().toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric' })}</span>
+              <button className="p-2 hover:bg-slate-100 rounded-full"><ArrowRight size={18} /></button>
             </div>
-            <div className="input-group">
-              <label>{t('dashboard.avail.start')}</label>
-              <input 
-                type="time" required 
-                value={newTemplate.start_time ?? ''}
-                onChange={e => setNewTemplate({...newTemplate, start_time: e.target.value})}
-              />
-            </div>
-            <div className="input-group">
-              <label>{t('dashboard.avail.end')}</label>
-              <input 
-                type="time" required 
-                value={newTemplate.end_time ?? ''}
-                onChange={e => setNewTemplate({...newTemplate, end_time: e.target.value})}
-              />
-            </div>
-            <div className="input-group flex-end">
-               <button type="submit" className="primary-btn add-btn">{t('dashboard.avail.add_template')}</button>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 bg-slate-100 rounded-lg text-sm font-medium">{t('dashboard.avail.today')}</button>
             </div>
           </div>
-        </form>
 
-        <div className="table-responsive">
-          <table className="dash-table">
-            <thead>
-              <tr>
-                <th>{t('dashboard.avail.day')}</th>
-                <th>{t('dashboard.avail.start')} - {t('dashboard.avail.end')}</th>
-                <th>{t('dashboard.bookings.actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {templates.map(tRow => (
-                <tr key={tRow.id}>
-                  <td><strong>{days[tRow.day_of_week]}</strong></td>
-                  <td>{tRow.start_time.slice(0, 5)} - {tRow.end_time.slice(0, 5)}</td>
-                  <td>
-                    <button onClick={() => handleDeleteTemplate(tRow.id)} className="delete-btn"><Trash2 size={16} /></button>
-                  </td>
-                </tr>
-              ))}
-              {templates.length === 0 && (
-                <tr>
-                  <td colSpan="3" className="text-center py-4">{t('dashboard.avail.no_templates')}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div className="calendar-grid">
+            {/* Header Spacer */}
+            <div className="grid-day-header"></div>
+            {/* Day Headers */}
+            {dayOrder.map((d, i) => (
+              <div key={d} className="grid-day-header">
+                <div className="text-xs uppercase text-slate-400 mb-1">{dayNames[i]}</div>
+                <div className="text-xl">--</div>
+              </div>
+            ))}
+
+            {/* Time Rows */}
+            {hours.map(h => (
+              <React.Fragment key={h}>
+                <div className="grid-time-label">
+                  {h > 12 ? `${h-12} ${isAr ? 'م' : 'PM'}` : `${h} ${isAr ? 'ص' : 'AM'}`}
+                </div>
+                {dayOrder.map(d => {
+                  const dayTemps = getTemplatesForDay(d);
+                  return (
+                    <div key={`${h}-${d}`} className="grid-cell">
+                      {dayTemps.map(temp => {
+                        const startH = parseInt(temp.start_time.split(':')[0]);
+                        const endH = parseInt(temp.end_time.split(':')[0]);
+                        if (h >= startH && h < endH) {
+                          return <div key={temp.id} className="slot-indicator h-full w-full"></div>;
+                        }
+                        return null;
+                      })}
+                    </div>
+                  );
+                })}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* SECTION 2: ADD MANUAL SLOT */}
-      <div className="dashboard-card mb-4">
-        <h3 className="section-title-dash"><Plus size={18} /> {i18n.language === 'ar' ? 'إضافة ميعاد محدد' : 'Add Specific Slot'}</h3>
-        <form onSubmit={handleAddSlot} className="add-slot-form bg-soft p-4 rounded-xl">
-          <div className="form-grid">
-            <div className="input-group">
-              <label>{t('dashboard.bookings.date')}</label>
-              <input 
-                type="date" required 
-                value={newSlot.date}
-                onChange={e => setNewSlot({...newSlot, date: e.target.value})}
-              />
+        {/* RIGHT COLUMN: Configuration Sidebar */}
+        <div className="availability-sidebar">
+          
+          {/* Service Info */}
+          <div className="sidebar-section">
+            <h4><Info size={18} /> {t('dashboard.avail.service_name')}</h4>
+            <input 
+              className="dash-input mb-4"
+              value={isAr ? settings.service_name_ar : settings.service_name_en}
+              onChange={(e) => setSettings({
+                ...settings, 
+                [isAr ? 'service_name_ar' : 'service_name_en']: e.target.value
+              })}
+              placeholder="e.g. Consultation"
+            />
+            <button className="flex items-center gap-2 text-primary text-sm font-medium hover:underline">
+              <Plus size={16} /> {t('dashboard.avail.add_question')}
+            </button>
+          </div>
+
+          {/* Weekly Schedule */}
+          <div className="sidebar-section">
+            <h4><Clock size={18} /> {t('dashboard.avail.templates_title')}</h4>
+            <div className="weekly-schedule-list">
+              {dayOrder.map((d, i) => {
+                const dayTemps = getTemplatesForDay(d);
+                const isActive = dayTemps.length > 0;
+                return (
+                  <div key={d} className="day-row-group">
+                    <div className="day-row">
+                      <div className="day-info">
+                        <label className="switch">
+                          <input type="checkbox" checked={isActive} onChange={() => toggleDayAvailability(d)} />
+                          <span className="slider"></span>
+                        </label>
+                        <span className="day-name">{dayNames[i]}</span>
+                        <span className={`day-status ${isActive ? 'active' : ''}`}>
+                          {isActive ? t('dashboard.avail.available') : t('dashboard.avail.unavailable')}
+                        </span>
+                      </div>
+                      <button onClick={() => addTimeRange(d)} className="add-time-btn">
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                    {isActive && (
+                      <div className="slots-container">
+                        {dayTemps.map(temp => (
+                          <div key={temp.id} className="time-range-row">
+                            <div className="time-input-wrapper">
+                              <Clock className="clock-icon" size={14} />
+                              <input 
+                                type="time" 
+                                value={temp.start_time.slice(0, 5)} 
+                                onChange={(e) => updateTemplateTime(temp.id, 'start_time', e.target.value)}
+                              />
+                            </div>
+                            <span className="text-slate-400">-</span>
+                            <div className="time-input-wrapper">
+                              <Clock className="clock-icon" size={14} />
+                              <input 
+                                type="time" 
+                                value={temp.end_time.slice(0, 5)} 
+                                onChange={(e) => updateTemplateTime(temp.id, 'end_time', e.target.value)}
+                              />
+                            </div>
+                            <button onClick={() => removeTemplate(temp.id)} className="delete-slot-btn">
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <div className="input-group">
-              <label>{i18n.language === 'ar' ? 'الميعاد' : 'Time Interval'}</label>
+          </div>
+
+          {/* Additional Settings */}
+          <div className="sidebar-section">
+            <h4><Settings size={18} /> {t('dashboard.avail.service_settings')}</h4>
+            
+            <div className="setting-row">
+              <span className="setting-label">{t('dashboard.avail.service_duration')}</span>
               <select 
-                value={`${newSlot.start_time}-${newSlot.end_time}`}
-                onChange={e => {
-                  const [start, end] = e.target.value.split('-');
-                  setNewSlot({...newSlot, start_time: start, end_time: end});
-                }}
+                className="dash-input w-32"
+                value={settings.service_duration}
+                onChange={e => setSettings({...settings, service_duration: parseInt(e.target.value)})}
               >
-                {timeSlots.map((ts, idx) => (
-                  <option key={idx} value={`${ts.start}-${ts.end}`}>
-                    {ts.start} - {ts.end}
-                  </option>
-                ))}
+                <option value={30}>30 {isAr ? 'دقيقة' : 'min'}</option>
+                <option value={45}>45 {isAr ? 'دقيقة' : 'min'}</option>
+                <option value={60}>60 {isAr ? 'دقيقة' : 'min'}</option>
               </select>
             </div>
-            <div className="input-group checkbox-row mt-6">
-              <label className="flex items-center gap-2 cursor-pointer">
+
+            <div className="setting-row">
+              <span className="setting-label">{t('dashboard.avail.buffer_time')}</span>
+              <label className="switch">
                 <input 
                   type="checkbox" 
-                  checked={newSlot.repeat_weekly}
-                  onChange={e => setNewSlot({...newSlot, repeat_weekly: e.target.checked})}
+                  checked={settings.buffer_time > 0} 
+                  onChange={e => setSettings({...settings, buffer_time: e.target.checked ? 15 : 0})}
                 />
-                <span>{i18n.language === 'ar' ? 'تكرار أسبوعياً' : 'Repeat Weekly'}</span>
+                <span className="slider"></span>
               </label>
             </div>
-            <div className="input-group flex-end">
-               <button type="submit" className="primary-btn add-btn">
-                 {i18n.language === 'ar' ? 'إضافة الموعد' : 'Add Slot'}
-               </button>
+
+            <div className="setting-row">
+              <span className="setting-label">{t('dashboard.avail.max_daily')}</span>
+              <div className="flex items-center gap-2">
+                 <input 
+                  type="number" 
+                  className="setting-input-small"
+                  value={settings.max_daily_bookings}
+                  onChange={e => setSettings({...settings, max_daily_bookings: parseInt(e.target.value)})}
+                />
+                <input type="checkbox" checked={true} readOnly />
+              </div>
+            </div>
+
+            <div className="setting-row">
+              <span className="setting-label">{t('dashboard.avail.max_future')}</span>
+              <select 
+                className="dash-input w-32"
+                value={settings.max_future_weeks}
+                onChange={e => setSettings({...settings, max_future_weeks: parseInt(e.target.value)})}
+              >
+                <option value={1}>{isAr ? 'أسبوع' : '1 week'}</option>
+                <option value={2}>{isAr ? 'أسبوعين' : '2 weeks'}</option>
+                <option value={4}>{isAr ? 'شهر' : '1 month'}</option>
+              </select>
             </div>
           </div>
-        </form>
-      </div>
 
-      {/* SECTION 3: CURRENT SLOTS LIST */}
-      <div className="dashboard-card">
-        <h3 className="section-title-dash"><CalIcon size={18} /> {t('dashboard.avail.slots_title')}</h3>
-        {loading ? (
-          <p>{t('common.loading')}</p>
-        ) : (
-          <div className="table-responsive">
-            <table className="dash-table">
-              <thead>
-                <tr>
-                  <th>{t('dashboard.bookings.date_time')}</th>
-                  <th>{t('dashboard.avail.start')} - {t('dashboard.avail.end')}</th>
-                  <th>{t('dashboard.bookings.status')}</th>
-                  <th>{t('dashboard.bookings.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {slots.map(slot => (
-                  <tr key={slot.id}>
-                    <td>{new Date(slot.date).toLocaleDateString(i18n.language === 'ar' ? 'ar-EG' : 'en-US')}</td>
-                    <td>{slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}</td>
-                    <td>
-                      <span className={`status-pill ${slot.is_booked ? 'booked' : 'available'}`}>
-                        {slot.is_booked ? t('dashboard.bookings.accepted') : 'Available'}
-                      </span>
-                    </td>
-                    <td>
-                      <button onClick={() => handleDeleteSlot(slot.id)} className="delete-btn"><Trash2 size={16} /></button>
-                    </td>
-                  </tr>
-                ))}
-                {slots.length === 0 && (
-                  <tr>
-                    <td colSpan="4" className="text-center py-4">{t('dashboard.avail.no_slots')}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="save-actions">
+            <button className="btn-cancel" onClick={() => fetchData()}>{t('dashboard.avail.cancel_btn')}</button>
+            <button className="btn-save-all" onClick={handleSaveSettings} disabled={isSaving}>
+              {isSaving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+              {t('dashboard.avail.save_btn')}
+            </button>
           </div>
-        )}
+
+        </div>
       </div>
     </div>
   );

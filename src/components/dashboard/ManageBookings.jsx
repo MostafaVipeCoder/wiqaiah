@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { Check, X, Trash2, Mail, Phone, Users, ExternalLink, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { sendConfirmationEmail, replaceEmailPlaceholders } from '../../lib/email';
 
 /**
  * ManageBookings Component
@@ -63,50 +64,13 @@ const ManageBookings = () => {
   /**
    * Replaces placeholders in email templates with actual data
    */
-  const replacePlaceholders = (template, booking, link) => {
-    if (!template) return '';
-    const dateStr = new Date(booking.availability?.date).toLocaleDateString(isAr ? 'ar-EG' : 'en-US');
-    const timeStr = `${booking.availability?.start_time?.slice(0, 5)} - ${booking.availability?.end_time?.slice(0, 5)}`;
-    
-    let result = template;
-    
-    // Define mapping for all possible placeholder styles
-    const replacements = {
-      name: booking.name || '',
-      'اسم المريض': booking.name || '',
-      'Patient Name': booking.name || '',
-      date: dateStr,
-      'التاريخ': dateStr,
-      time: timeStr,
-      'الوقت': timeStr,
-      link: link || '',
-      'الرابط': link || ''
-    };
-
-    // Replace both {key} and [key] formats
-    Object.entries(replacements).forEach(([key, value]) => {
-      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const curlyRegex = new RegExp(`\\{${escapedKey}\\}`, 'gi');
-      const squareRegex = new RegExp(`\\[${escapedKey}\\]`, 'gi');
-      result = result.replace(curlyRegex, value).replace(squareRegex, value);
-    });
-
-    return result;
-  };
-
-  /**
-   * Invokes the send-booking-email Edge Function
-   */
-  const invokeEmailFunction = async (payload) => {
-    const { error: fnError } = await supabase.functions.invoke('send-booking-email', {
-      body: payload
-    });
-
-    if (fnError) {
-      const body = await fnError.context?.json().catch(() => ({}));
-      throw new Error(body.error || 'Edge Function failure');
-    }
-    return true;
+  const getPreparedEmail = (template, booking, link) => {
+    return replaceEmailPlaceholders(template, {
+      name: booking.name,
+      date: new Date(booking.availability?.date).toLocaleDateString(isAr ? 'ar-EG' : 'en-US'),
+      time: `${booking.availability?.start_time?.slice(0, 5)} - ${booking.availability?.end_time?.slice(0, 5)}`,
+      link
+    }, isAr);
   };
 
   // ── Event Handlers ─────────────────────────────────────────────────────────
@@ -116,16 +80,9 @@ const ManageBookings = () => {
     const booking = bookings.find(b => b.id === id);
     
     try {
-      // 1. Update Database Status
-      const updateData = { status };
-      if (meetingLink) updateData.meeting_link = meetingLink;
-
-      const { error } = await supabase.from('bookings').update(updateData).eq('id', id);
-      if (error) throw error;
-
-      // 2. If approved, send confirmation email
       if (status === 'accepted') {
-        await invokeEmailFunction({
+        // 1. Try sending the email first
+        await sendConfirmationEmail({
           name: booking.name,
           email: booking.email,
           date: booking.availability?.date,
@@ -133,9 +90,24 @@ const ManageBookings = () => {
           meetingLink,
           customMessage: customEmail
         });
+
+        // 2. If email successful, update Database Status
+        const { error: dbError } = await supabase
+          .from('bookings')
+          .update({ status: 'accepted', meeting_link: meetingLink })
+          .eq('id', id);
+          
+        if (dbError) throw new Error(`${isAr ? 'تم إرسال الإيميل ولكن فشل تحديث القاعدة' : 'Email sent but failed to update database'}: ${dbError.message}`);
+        
         toast.success(isAr ? 'تم تأكيد الحجز وإرسال الإيميل' : 'Booking confirmed and email sent');
-      } else if (status === 'rejected') {
-        toast.success(isAr ? 'تم رفض الحجز' : 'Booking rejected');
+      } else {
+        // For rejections or status reverts, direct DB update
+        const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
+        if (error) throw error;
+        
+        if (status === 'rejected') {
+          toast.success(isAr ? 'تم رفض الحجز' : 'Booking rejected');
+        }
       }
 
       // Cleanup
@@ -157,7 +129,7 @@ const ManageBookings = () => {
     const booking = bookings.find(b => b.id === summaryId);
 
     try {
-      await invokeEmailFunction({
+      await sendConfirmationEmail({
         name: booking.name,
         email: booking.email,
         date: new Date(booking.availability.date).toLocaleDateString(),
@@ -272,7 +244,7 @@ const ManageBookings = () => {
                                 setAcceptingId(booking.id);
                                 const link = 'https://zoom.us/j/your-id';
                                 setSessionLink(link);
-                                setEmailContent(replacePlaceholders(siteSettings?.booking_confirmation_email, booking, link));
+                                setEmailContent(getPreparedEmail(siteSettings?.booking_confirmation_email, booking, link));
                               }} 
                               className="confirm-btn" 
                               title={t('dashboard.bookings.accepted')}
@@ -343,7 +315,7 @@ const ManageBookings = () => {
                   onChange={(e) => {
                     setSessionLink(e.target.value);
                     const b = bookings.find(x => x.id === acceptingId);
-                    setEmailContent(replacePlaceholders(siteSettings?.booking_confirmation_email, b, e.target.value));
+                    setEmailContent(getPreparedEmail(siteSettings?.booking_confirmation_email, b, e.target.value));
                   }}
                   autoFocus 
                 />

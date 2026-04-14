@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Users, Save, X, ExternalLink, Mail, Phone } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Save, X, ExternalLink, Mail, Phone, Check, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { sendConfirmationEmail, replaceEmailPlaceholders } from '../../lib/email';
 
 const INITIAL_FORM_STATE = {
   title: '', title_ar: '', description: '', description_ar: '',
@@ -26,6 +27,9 @@ const ManageWebinars = () => {
   const [registrations, setRegistrations] = useState([]);
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [isSaving, setIsSaving] = useState(false);
+  const [acceptingRegId, setAcceptingRegId] = useState(null);
+  const [emailContent, setEmailContent] = useState('');
+  const [meetingLink, setMeetingLink] = useState('');
 
   // ── Data Fetching ──────────────────────────────────────────────────────────
 
@@ -164,24 +168,61 @@ const ManageWebinars = () => {
     }
   };
 
-  const updateRegistrationStatus = async (regId, newStatus) => {
+  const updateRegistrationStatus = async (regId, newStatus, customLink = '', customMessage = '') => {
+    setIsSaving(true);
+    const reg = registrations.find(r => r.id === regId);
+    const webinar = webinars.find(w => w.id === viewingRegistrations);
+
     try {
-      const { error } = await supabase
-        .from('webinar_registrations')
-        .update({ status: newStatus })
-        .eq('id', regId);
-      if (error) throw error;
+      if (newStatus === 'accepted') {
+        // Send Email First
+        await sendConfirmationEmail({
+          name: reg.name,
+          email: reg.email,
+          date: new Date(webinar.start_time).toLocaleDateString(isAr ? 'ar-EG' : 'en-US'),
+          startTime: new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+          meetingLink: customLink || webinar.meeting_link,
+          customMessage: customMessage
+        });
+
+        const { error } = await supabase
+          .from('webinar_registrations')
+          .update({ status: 'accepted' })
+          .eq('id', regId);
+        if (error) throw error;
+        
+        toast.success(isAr ? 'تم تأكيد التسجيل وإرسال الإيميل' : 'Registration confirmed and email sent');
+      } else {
+        const { error } = await supabase
+          .from('webinar_registrations')
+          .update({ status: newStatus })
+          .eq('id', regId);
+        if (error) throw error;
+        toast.success(isAr ? 'تم تحديث الحالة' : 'Status updated');
+      }
 
       setRegistrations(prev => prev.map(r => r.id === regId ? { ...r, status: newStatus } : r));
-      toast.success(isAr ? 'تمت العملية' : 'Status updated');
-      
-      // Auto-send confirmation email for webinars
-      if (newStatus === 'accepted') {
-        // ... Logic for email (could be same as ManageBookings email function)
-      }
+      setAcceptingRegId(null);
     } catch (err) {
-      toast.error(isAr ? 'فشل تحديث الحالة' : 'Update failed');
+      console.error('Update Registration Error:', err);
+      toast.error(isAr ? `فشل: ${err.message}` : `Failed: ${err.message}`);
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const openAcceptModal = (reg) => {
+    const webinar = webinars.find(w => w.id === viewingRegistrations);
+    setAcceptingRegId(reg.id);
+    const link = webinar.meeting_link || '';
+    setMeetingLink(link);
+    const content = replaceEmailPlaceholders(webinar.confirmation_email_content, {
+      name: reg.name,
+      date: new Date(webinar.start_time).toLocaleDateString(isAr ? 'ar-EG' : 'en-US'),
+      time: new Date(webinar.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      link
+    }, isAr);
+    setEmailContent(content);
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -215,8 +256,21 @@ const ManageWebinars = () => {
                     <td><span className={`status-pill ${reg.status}`}>{t(`dashboard.bookings.${reg.status}`)}</span></td>
                     <td>
                       <div className="action-btns">
-                        <button onClick={() => updateRegistrationStatus(reg.id, 'accepted')} className="confirm-btn" disabled={reg.status === 'accepted'}><Plus size={14} /></button>
-                        <button onClick={() => updateRegistrationStatus(reg.id, 'rejected')} className="delete-btn" disabled={reg.status === 'rejected'}><X size={14} /></button>
+                        <button 
+                          onClick={() => openAcceptModal(reg)} 
+                          className="confirm-btn" 
+                          disabled={reg.status === 'accepted'}
+                          title={isAr ? 'تأكيد وإرسال إيميل' : 'Confirm and Send Email'}
+                        >
+                          <Check size={14} />
+                        </button>
+                        <button 
+                          onClick={() => updateRegistrationStatus(reg.id, 'rejected')} 
+                          className="delete-btn" 
+                          disabled={reg.status === 'rejected'}
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -225,6 +279,47 @@ const ManageWebinars = () => {
             </table>
           </div>
         </div>
+
+        {/* Acceptance Modal */}
+        {acceptingRegId && (
+          <div className="modal-backdrop" onClick={() => setAcceptingRegId(null)}>
+            <div className="accept-modal-content animate-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h4>{isAr ? 'تأكيد التسجيل وإرسال الإيميل' : 'Confirm Registration & Send Email'}</h4>
+                <button onClick={() => setAcceptingRegId(null)} className="btn-close-modal"><X size={20} /></button>
+              </div>
+              <div className="email-custom-area">
+                <div className="email-field-group">
+                  <label>{isAr ? 'رابط الويبينار' : 'Webinar Link'}</label>
+                  <input 
+                    type="url" 
+                    className="dash-input"
+                    value={meetingLink}
+                    onChange={(e) => setMeetingLink(e.target.value)}
+                  />
+                </div>
+                <div className="email-field-group">
+                  <label>{isAr ? 'محتوى الإيميل' : 'Email Content'}</label>
+                  <textarea
+                    className="dash-textarea"
+                    value={emailContent}
+                    onChange={(e) => setEmailContent(e.target.value)}
+                    style={{ minHeight: '150px' }}
+                  />
+                </div>
+              </div>
+              <div className="dialog-actions">
+                <button 
+                  onClick={() => updateRegistrationStatus(acceptingRegId, 'accepted', meetingLink, emailContent)} 
+                  className="btn-accept-send"
+                  disabled={isSaving}
+                >
+                  <Send size={18} /> {isSaving ? t('common.loading') : (isAr ? 'تأكيد وإرسال' : 'Confirm & Send')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
