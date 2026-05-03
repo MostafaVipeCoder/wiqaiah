@@ -121,7 +121,11 @@ const resources = {
         "success": "Login successful!",
         "failed": "Login failed. Check your credentials.",
         "unauthorized_title": "Access Denied",
-        "unauthorized_msg": "You do not have administrative privileges."
+        "unauthorized_msg": "You do not have administrative privileges.",
+        "forgot_password": "Forgot Password?",
+        "reset_sent_success": "Password reset link sent to your email!",
+        "reset_sent_error": "Failed to send reset link. Please check the email.",
+        "back_to_login": "Back to Login"
       },
       "dashboard_nav": {
         "bookings": "Bookings",
@@ -214,7 +218,16 @@ const resources = {
           "save_btn": "Save Settings",
           "saving": "Saving...",
           "success": "Settings updated successfully!",
-          "error": "Error saving settings"
+          "error": "Error saving settings",
+          "recovery_email": "Recovery Email",
+          "recovery_email_desc": "This email will be used for password recovery if you forget your admin password.",
+          "security_title": "Security & Account",
+          "change_password": "Change Password",
+          "new_password": "New Password",
+          "confirm_password": "Confirm New Password",
+          "password_mismatch": "Passwords do not match!",
+          "password_success": "Password updated successfully!",
+          "password_error": "Failed to update password."
         }
       },
       "common": {
@@ -345,7 +358,11 @@ const resources = {
         "success": "تم الدخول بنجاح!",
         "failed": "خطأ في الدخول. تأكد من البيانات.",
         "unauthorized_title": "تم رفض الدخول",
-        "unauthorized_msg": "ليس لديك صلاحيات المسؤول."
+        "unauthorized_msg": "ليس لديك صلاحيات المسؤول.",
+        "forgot_password": "نسيت كلمة المرور؟",
+        "reset_sent_success": "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني!",
+        "reset_sent_error": "فشل إرسال الرابط. تأكد من البريد الإلكتروني.",
+        "back_to_login": "العودة لتسجيل الدخول"
       },
       "dashboard_nav": {
         "bookings": "الحجوزات",
@@ -438,7 +455,16 @@ const resources = {
           "save_btn": "حفظ الإعدادات",
           "saving": "جاري الحفظ...",
           "success": "تم تحديث الإعدادات بنجاح!",
-          "error": "خطأ في حفظ الإعدادات"
+          "error": "خطأ في حفظ الإعدادات",
+          "recovery_email": "بريد الطوارئ / الاسترداد",
+          "recovery_email_desc": "سيتم استخدام هذا البريد لاستعادة كلمة المرور في حال نسيانها.",
+          "security_title": "الأمان والحساب",
+          "change_password": "تغيير كلمة المرور",
+          "new_password": "كلمة المرور الجديدة",
+          "confirm_password": "تأكيد كلمة المرور الجديدة",
+          "password_mismatch": "كلمات المرور غير متطابقة!",
+          "password_success": "تم تحديث كلمة المرور بنجاح!",
+          "password_error": "فشل تحديث كلمة المرور."
         }
       },
       "common": {

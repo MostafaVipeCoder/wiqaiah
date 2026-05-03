@@ -204,6 +204,20 @@ const SiteSettings = () => {
               </small>
             </div>
 
+            {/* Recovery Email Section */}
+            <div className="input-group full-width mt-4">
+              <label><AlertCircle size={18} /> {t('dashboard.settings.recovery_email')}</label>
+              <input
+                type="email"
+                value={settings.recovery_email || ''}
+                onChange={e => setSettings({ ...settings, recovery_email: e.target.value })}
+                placeholder="backup@example.com"
+              />
+              <small className="help-text">
+                {t('dashboard.settings.recovery_email_desc')}
+              </small>
+            </div>
+
             {/* Booking confirmation email template */}
             <div className="input-group full-width mt-4">
               <label>{t('dashboard.settings.email_template')}</label>
@@ -230,6 +244,48 @@ const SiteSettings = () => {
             </button>
           </div>
         </form>
+
+        {/* Change Password Section */}
+        <div className="mt-12 pt-12 border-t border-border-color">
+          <h3 className="section-title-dash mb-6"><AlertCircle size={20} /> {t('dashboard.settings.security_title')}</h3>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            const newPassword = e.target.new_password.value;
+            const confirmPassword = e.target.confirm_password.value;
+
+            if (newPassword !== confirmPassword) {
+              setMessage({ type: 'error', text: t('dashboard.settings.password_mismatch') });
+              return;
+            }
+
+            setSaving(true);
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            
+            if (error) {
+              setMessage({ type: 'error', text: t('dashboard.settings.password_error') });
+            } else {
+              setMessage({ type: 'success', text: t('dashboard.settings.password_success') });
+              e.target.reset();
+            }
+            setSaving(false);
+          }} className="settings-form-grid">
+            <div className="form-grid">
+              <div className="input-group">
+                <label>{t('dashboard.settings.new_password')}</label>
+                <input name="new_password" type="password" required minLength={6} />
+              </div>
+              <div className="input-group">
+                <label>{t('dashboard.settings.confirm_password')}</label>
+                <input name="confirm_password" type="password" required minLength={6} />
+              </div>
+            </div>
+            <div className="flex-end mt-6">
+              <button type="submit" className="secondary-btn" disabled={saving}>
+                {t('dashboard.settings.change_password')}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

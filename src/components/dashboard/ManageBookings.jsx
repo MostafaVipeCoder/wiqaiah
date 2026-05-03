@@ -33,6 +33,14 @@ const ManageBookings = () => {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Check Session First
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        await supabase.auth.signOut();
+        window.location.href = '/dashboard/login';
+        return;
+      }
+
       const { data, error } = await supabase
         .from('bookings')
         .select(`
@@ -48,7 +56,11 @@ const ManageBookings = () => {
       if (error) throw error;
       setBookings(data || []);
     } catch (err) {
-      toast.error(isAr ? 'فشل في تحميل الحجوزات' : 'Failed to load bookings');
+      if (err.status === 401 || err.message?.toLowerCase().includes('refresh token')) {
+        supabase.auth.signOut().then(() => window.location.href = '/dashboard/login');
+      } else {
+        toast.error(isAr ? 'فشل في تحميل الحجوزات' : 'Failed to load bookings');
+      }
     } finally {
       setLoading(false);
     }

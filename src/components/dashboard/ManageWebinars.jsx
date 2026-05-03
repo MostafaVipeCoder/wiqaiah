@@ -36,6 +36,14 @@ const ManageWebinars = () => {
   const fetchWebinars = useCallback(async () => {
     setLoading(true);
     try {
+      // 1. Check Session First
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        await supabase.auth.signOut();
+        window.location.href = '/dashboard/login';
+        return;
+      }
+
       const { data, error } = await supabase
         .from('webinars')
         .select('*, webinar_registrations(count)')
@@ -44,7 +52,11 @@ const ManageWebinars = () => {
       if (error) throw error;
       setWebinars(data || []);
     } catch (err) {
-      toast.error(isAr ? 'فشل تحميل الندوات' : 'Failed to load webinars');
+      if (err.status === 401 || err.message?.toLowerCase().includes('refresh token')) {
+        supabase.auth.signOut().then(() => window.location.href = '/dashboard/login');
+      } else {
+        toast.error(isAr ? 'فشل تحميل الندوات' : 'Failed to load webinars');
+      }
     } finally {
       setLoading(false);
     }

@@ -13,9 +13,21 @@ const ManageAvailability = () => {
   const isAr = i18n.language === 'ar';
   
   // ── State ──────────────────────────────────────────────────────────────────
+  const getStartOfWeek = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    // Assuming week starts on Saturday (6)
+    const diff = day === 6 ? 0 : -(day + 1);
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [templates, setTemplates] = useState([]);
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => getStartOfWeek(new Date()));
+  const [slots, setSlots] = useState([]);
   const [settings, setSettings] = useState({
     service_name_ar: '',
     service_name_en: '',
@@ -40,25 +52,105 @@ const ManageAvailability = () => {
     fetchData();
   }, []);
 
+  const fetchSlotsForWeek = async () => {
+    try {
+      const startDate = new Date(currentWeekStart);
+      const endDate = new Date(currentWeekStart);
+      endDate.setDate(endDate.getDate() + 6);
+      endDate.setHours(23, 59, 59, 999);
+
+      const { data, error } = await supabase
+        .from('availability')
+        .select('*')
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0])
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true });
+
+      if (error) throw error;
+      if (data) setSlots(data);
+    } catch (err) {
+      console.error('Error fetching slots:', err);
+      toast.error(isAr ? 'حدث خطأ أثناء تحميل المواعيد' : 'Error loading slots');
+    }
+  };
+
+  useEffect(() => {
+    fetchSlotsForWeek();
+  }, [currentWeekStart]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: setRes } = await supabase.from('site_settings').select('*').single();
+      // 1. Check Session First to prevent "Invalid Refresh Token" if already expired
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        await supabase.auth.signOut();
+        window.location.href = '/dashboard/login';
+        return;
+      }
+
+      const { data: setRes, error: setError } = await supabase.from('site_settings').select('*').single();
+      if (setError) throw setError;
       if (setRes) setSettings(setRes);
 
-      const { data: tempRes } = await supabase
+      const { data: tempRes, error: tempError } = await supabase
         .from('availability_templates')
         .select('*')
         .order('start_time', { ascending: true });
+      if (tempError) throw tempError;
       if (tempRes) setTemplates(tempRes);
     } catch (err) {
       console.error('Fetch error:', err);
+      // Handle auth errors or invalid refresh tokens
+      if (err.status === 401 || err.message?.toLowerCase().includes('refresh token')) {
+        supabase.auth.signOut().then(() => {
+          window.location.href = '/dashboard/login';
+        });
+      } else {
+        toast.error(isAr ? 'حدث خطأ أثناء تحميل البيانات' : 'Error loading data');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
+  const nextWeek = () => {
+    const d = new Date(currentWeekStart);
+    d.setDate(d.getDate() + 7);
+    setCurrentWeekStart(d);
+  };
+
+  const prevWeek = () => {
+    const d = new Date(currentWeekStart);
+    d.setDate(d.getDate() - 7);
+    setCurrentWeekStart(d);
+  };
+
+  const goToToday = () => {
+    setCurrentWeekStart(getStartOfWeek(new Date()));
+  };
+
+  const deleteSlot = async (slotId) => {
+    if (!window.confirm(isAr ? 'هل أنت متأكد من حذف هذا الموعد؟' : 'Are you sure you want to delete this slot?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('availability')
+        .delete()
+        .eq('id', slotId);
+      
+      if (error) throw error;
+      
+      toast.success(isAr ? 'تم حذف الموعد بنجاح' : 'Slot deleted successfully');
+      setSlots(prev => prev.filter(s => s.id !== slotId));
+    } catch (err) {
+      console.error('Error deleting slot:', err);
+      toast.error(isAr ? 'حدث خطأ أثناء الحذف' : 'Error deleting slot');
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsSaving(true);
     try {
@@ -68,6 +160,14 @@ const ManageAvailability = () => {
         .eq('id', settings.id);
       
       if (error) throw error;
+      
+      // Generate slots up to max_future_weeks immediately
+      const { error: rpcError } = await supabase.rpc('replicate_availability_if_enabled');
+      if (rpcError) console.error("Error generating slots:", rpcError);
+
+      // Refresh the slots for the currently viewed week
+      await fetchSlotsForWeek();
+
       toast.success(t('dashboard.avail.save_success'));
     } catch (err) {
       toast.error(t('dashboard.avail.save_error'));
@@ -162,12 +262,19 @@ const ManageAvailability = () => {
         <div className="calendar-grid-container">
           <div className="calendar-header">
             <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-slate-100 rounded-full"><ArrowLeft size={18} /></button>
-              <span className="font-semibold text-lg">{new Date().toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'long', year: 'numeric' })}</span>
-              <button className="p-2 hover:bg-slate-100 rounded-full"><ArrowRight size={18} /></button>
+              <button onClick={isAr ? nextWeek : prevWeek} className="p-2 hover:bg-slate-100 rounded-full"><ArrowLeft size={18} /></button>
+              <span className="font-semibold text-lg">
+                {(() => {
+                  const weekEndDate = new Date(currentWeekStart);
+                  weekEndDate.setDate(weekEndDate.getDate() + 6);
+                  const monthStr = currentWeekStart.toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'short' });
+                  return `${currentWeekStart.getDate()} - ${weekEndDate.getDate()} ${monthStr} ${currentWeekStart.getFullYear()}`;
+                })()}
+              </span>
+              <button onClick={isAr ? prevWeek : nextWeek} className="p-2 hover:bg-slate-100 rounded-full"><ArrowRight size={18} /></button>
             </div>
             <div className="flex gap-2">
-              <button className="px-4 py-2 bg-slate-100 rounded-lg text-sm font-medium">{t('dashboard.avail.today')}</button>
+              <button onClick={goToToday} className="px-4 py-2 bg-slate-100 rounded-lg text-sm font-medium">{t('dashboard.avail.today')}</button>
             </div>
           </div>
 
@@ -175,12 +282,20 @@ const ManageAvailability = () => {
             {/* Header Spacer */}
             <div className="grid-day-header"></div>
             {/* Day Headers */}
-            {dayOrder.map((d, i) => (
-              <div key={d} className="grid-day-header">
-                <div className="text-xs uppercase text-slate-400 mb-1">{dayNames[i]}</div>
-                <div className="text-xl">--</div>
-              </div>
-            ))}
+            {dayOrder.map((d, i) => {
+              const currentDate = new Date(currentWeekStart);
+              currentDate.setDate(currentDate.getDate() + i);
+              const dateNum = currentDate.getDate();
+              const monthNum = currentDate.getMonth() + 1;
+              const isDateToday = new Date().toDateString() === currentDate.toDateString();
+
+              return (
+                <div key={d} className={`grid-day-header ${isDateToday ? 'is-today' : ''}`}>
+                  <div className="text-xs uppercase text-slate-400 mb-1">{dayNames[i]}</div>
+                  <div className={`text-xl font-bold ${isDateToday ? 'text-primary-600' : ''}`}>{dateNum}/{monthNum}</div>
+                </div>
+              );
+            })}
 
             {/* Time Rows */}
             {hours.map(h => (
@@ -188,18 +303,36 @@ const ManageAvailability = () => {
                 <div className="grid-time-label">
                   {h > 12 ? `${h-12} ${isAr ? 'م' : 'PM'}` : `${h} ${isAr ? 'ص' : 'AM'}`}
                 </div>
-                {dayOrder.map(d => {
-                  const dayTemps = getTemplatesForDay(d);
+                {dayOrder.map((d, i) => {
+                  const currentDate = new Date(currentWeekStart);
+                  currentDate.setDate(currentDate.getDate() + i);
+                  const isDateToday = new Date().toDateString() === currentDate.toDateString();
+                  
+                  // format properly to YYYY-MM-DD local time
+                  const year = currentDate.getFullYear();
+                  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                  const day = String(currentDate.getDate()).padStart(2, '0');
+                  const dateStr = `${year}-${month}-${day}`;
+
+                  const cellSlots = slots.filter(s => {
+                    const slotHour = parseInt(s.start_time.split(':')[0]);
+                    return s.date === dateStr && slotHour === h;
+                  });
+
                   return (
-                    <div key={`${h}-${d}`} className="grid-cell">
-                      {dayTemps.map(temp => {
-                        const startH = parseInt(temp.start_time.split(':')[0]);
-                        const endH = parseInt(temp.end_time.split(':')[0]);
-                        if (h >= startH && h < endH) {
-                          return <div key={temp.id} className="slot-indicator h-full w-full"></div>;
-                        }
-                        return null;
-                      })}
+                    <div key={`${h}-${d}`} className={`grid-cell p-1 flex flex-col gap-1 overflow-y-auto ${isDateToday ? 'is-today' : ''}`}>
+                      {cellSlots.map(slot => (
+                        <div key={slot.id} className={`actual-slot ${slot.is_booked ? 'slot-booked' : 'slot-available'}`}>
+                          <div className="slot-time">
+                            {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                          </div>
+                          {!slot.is_booked && (
+                            <button className="btn-delete-slot" onClick={() => deleteSlot(slot.id)}>
+                              <X size={12} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   );
                 })}
@@ -211,23 +344,6 @@ const ManageAvailability = () => {
         {/* RIGHT COLUMN: Configuration Sidebar */}
         <div className="availability-sidebar">
           
-          {/* Service Info */}
-          <div className="sidebar-section">
-            <h4><Info size={18} /> {t('dashboard.avail.service_name')}</h4>
-            <input 
-              className="dash-input mb-4"
-              value={isAr ? settings.service_name_ar : settings.service_name_en}
-              onChange={(e) => setSettings({
-                ...settings, 
-                [isAr ? 'service_name_ar' : 'service_name_en']: e.target.value
-              })}
-              placeholder="e.g. Consultation"
-            />
-            <button className="flex items-center gap-2 text-primary text-sm font-medium hover:underline">
-              <Plus size={16} /> {t('dashboard.avail.add_question')}
-            </button>
-          </div>
-
           {/* Weekly Schedule */}
           <div className="sidebar-section">
             <h4><Clock size={18} /> {t('dashboard.avail.templates_title')}</h4>
@@ -285,7 +401,7 @@ const ManageAvailability = () => {
               })}
             </div>
           </div>
-
+          
           {/* Additional Settings */}
           <div className="sidebar-section">
             <h4><Settings size={18} /> {t('dashboard.avail.service_settings')}</h4>
