@@ -178,7 +178,7 @@ const BookingPage = () => {
       {/* Header */}
       <div className="booking-header">
         <Link to="/" className="back-link">
-          <ChevronLeft size={16} />
+          <ChevronLeft size={16} className={isAr ? 'rotate-180' : ''} />
           {isAr ? 'رجوع' : 'Back'}
         </Link>
         <h1>{isAr ? 'احجز استشارتك الخاصة' : 'Book Your Private Consultation'}</h1>

@@ -29,9 +29,10 @@ export const useSiteSettings = () => {
 
     fetchSettings();
 
-    // Subscribe to changes
-    const subscription = supabase
-      .channel('site_settings_changes')
+    // Subscribe to changes with a unique channel name to avoid conflicts between multiple components
+    const channelId = Math.random().toString(36).substring(7);
+    const channel = supabase
+      .channel(`site_settings_changes_${channelId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, 
         (payload) => {
           if (payload.new) {
@@ -42,7 +43,7 @@ export const useSiteSettings = () => {
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 

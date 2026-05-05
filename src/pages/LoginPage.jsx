@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import './LoginPage.css';
 
