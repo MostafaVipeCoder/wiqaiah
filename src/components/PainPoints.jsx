@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePageContent } from '../hooks/usePageContent';
+import { usePricing } from '../hooks/usePricing';
 import './PainPoints.css';
 
 const PainPoints = () => {
@@ -8,6 +9,7 @@ const PainPoints = () => {
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
   const { get: getBenefits } = usePageContent('benefits');
   const { get: getWho, content: whoContent } = usePageContent('who_its_for');
+  const { finalPrice, currencySymbol, loading: pricingLoading } = usePricing();
 
   // Build who_its_for points dynamically from DB or fallback to i18n
   const whoPoints = whoContent
@@ -16,6 +18,8 @@ const PainPoints = () => {
         .sort()
         .map(k => whoContent[k][lang] || whoContent[k]['en'])
     : t('who_its_for.points', { returnObjects: true });
+
+  const punchline = getWho('punchline', lang, t('hero.features.same_dentist'));
 
   return (
     <section className="pain-section">
@@ -42,8 +46,8 @@ const PainPoints = () => {
         </div>
 
         <p className="pain-punchline">
-          {t('hero.price_note')}<br />
-          <em>{t('hero.features.same_dentist')}</em>
+          {!pricingLoading ? t('hero.price_note', { price: finalPrice, symbol: currencySymbol }) : '...'}<br />
+          <em>{punchline}</em>
         </p>
       </div>
     </section>

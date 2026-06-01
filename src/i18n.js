@@ -17,7 +17,7 @@ const resources = {
         "title": "Your smile deserves <em>total protection</em>, starting from your couch.",
         "subtitle": "A 20-minute live video consultation with a licensed dentist who has over 10 years of experience. You book a slot online, join a Zoom call, and ask whatever is on your mind about your or your family's oral health — in plain language, with a real professional.",
         "book_btn": "Book Your Session",
-        "price_note": "THE SESSION COSTS $15",
+        "price_note": "THE SESSION COSTS {{symbol}}{{price}}",
         "features": {
           "no_waiting": "NO WAITING ROOMS",
           "no_prescriptions": "NO PRESCRIPTIONS",
@@ -26,7 +26,7 @@ const resources = {
       },
       "about": {
         "title": "What it is",
-        "content": "A 20-minute live video consultation with a licensed dentist who has over 10 years of experience. You book a slot online, join a Zoom call, and ask whatever is on your mind about your or your family's oral health — in plain language, with a real professional. You will meet the same dentist everytime. The session costs $15."
+        "content": "A 20-minute live video consultation with a licensed dentist who has over 10 years of experience. You book a slot online, join a Zoom call, and ask whatever is on your mind about your or your family's oral health — in plain language, with a real professional. You will meet the same dentist everytime. The session costs {{symbol}}{{price}}."
       },
       "benefits": {
         "title": "What you get out of it",
@@ -112,7 +112,7 @@ const resources = {
         "empty": "No upcoming webinars at the moment."
       },
       "login_page": {
-        "title": "Doctor Login",
+        "title": "Dashboard",
         "subtitle": "Login to manage your bookings and webinars.",
         "email": "Email",
         "password": "Password",
@@ -258,7 +258,7 @@ const resources = {
         "title": "ابتسامتك تستحق <em>حماية كاملة</em>، تبدأ من أريكتك.",
         "subtitle": "استشارة فيديو مباشرة مدتها 20 دقيقة مع طبيب أسنان مرخص يتمتع بخبرة تزيد عن 10 سنوات. احجز موعدك أونلاين، انضم لمكالمة Zoom، واسأل عما يدور في ذهنك عن صحة أسنانك أو أسنان عائلتك — بلغة بسيطة وواضحة مع خبير حقيقي.",
         "book_btn": "احجز جلستك الآن",
-        "price_note": "تكلفة الجلسة 15 دولاراً",
+        "price_note": "تكلفة الجلسة {{price}} {{symbol}}",
         "features": {
           "no_waiting": "بدون أي انتظار",
           "no_prescriptions": "بدون وصفات طبية",
@@ -267,7 +267,7 @@ const resources = {
       },
       "about": {
         "title": "عن الخدمة",
-        "content": "استشارة فيديو مباشرة مدتها 20 دقيقة مع طبيب أسنان مرخص يتمتع بخبرة تزيد عن 10 سنوات. احجز موعدك أونلاين، انضم لمكالمة Zoom، واسأل عما يدور في ذهنك عن صحة أسنانك أو أسنان عائلتك — بلغة بسيطة وواضحة مع خبير حقيقي. ستقابل نفس الطبيب في كل مرة. الجلسة تكلف 15 دولاراً."
+        "content": "استشارة فيديو مباشرة مدتها 20 دقيقة مع طبيب أسنان مرخص يتمتع بخبرة تزيد عن 10 سنوات. احجز موعدك أونلاين، انضم لمكالمة Zoom، واسأل عما يدور في ذهنك عن صحة أسنانك أو أسنان عائلتك — بلغة بسيطة وواضحة مع خبير حقيقي. ستقابل نفس الطبيب في كل مرة. الجلسة تكلف {{price}} {{symbol}}."
       },
       "benefits": {
         "title": "ماذا ستستفيد؟",
@@ -353,7 +353,7 @@ const resources = {
         "empty": "لا توجد ويبينارز قادمة حالياً."
       },
       "login_page": {
-        "title": "دخول الطبيب",
+        "title": "لوحة التحكم",
         "subtitle": "قم بتسجيل الدخول لإدارة حجوزاتك والويبينارز.",
         "email": "البريد الإلكتروني",
         "password": "كلمة المرور",

@@ -11,21 +11,25 @@ const DEFAULT = {
   show_discount: false,
   discount_text_en: '',
   discount_text_ar: '',
+  currency_code: 'EGP',
+  currency_symbol: 'ج.م'
 };
 
 export const usePricing = () => {
   const [pricing, setPricing] = useState(cachedPricing || DEFAULT);
+  const [loading, setLoading] = useState(!cachedPricing);
 
   useEffect(() => {
     if (cachedPricing) {
       setPricing(cachedPricing);
+      setLoading(false);
       return;
     }
 
     if (!fetchPromise) {
       fetchPromise = supabase
         .from('site_settings')
-        .select('consultation_price, discount_percentage, show_discount, discount_text_en, discount_text_ar')
+        .select('consultation_price, discount_percentage, show_discount, discount_text_en, discount_text_ar, currency_code, currency_symbol')
         .maybeSingle()
         .then(({ data }) => {
           if (data) {
@@ -39,6 +43,7 @@ export const usePricing = () => {
 
     fetchPromise.then(data => {
       setPricing(data);
+      setLoading(false);
     });
   }, []);
 
@@ -49,8 +54,10 @@ export const usePricing = () => {
 
   return {
     ...pricing,
+    loading,
     finalPrice: Number(finalPrice).toFixed(2),
     originalPrice: Number(pricing.consultation_price).toFixed(2),
+    currencySymbol: pricing.currency_symbol || (pricing.currency_code === 'USD' ? '$' : pricing.currency_code || 'ج.م'),
   };
 };
 

@@ -11,7 +11,7 @@ const Offer = () => {
   const lang = i18n.language === 'ar' ? 'ar' : 'en';
   const { get, content } = usePageContent('offer');
 
-  const { finalPrice, originalPrice, show_discount } = usePricing();
+  const { finalPrice, originalPrice, show_discount, currencySymbol, loading: pricingLoading } = usePricing();
 
   const perks = content
     ? Object.keys(content)
@@ -43,9 +43,15 @@ const Offer = () => {
           <div className="offer-card">
             <div className="card-inner">
               <div className="price-header">
-                <span className="current-price">${finalPrice}</span>
-                {show_discount && (
-                  <span className="old-price">${originalPrice}</span>
+                {pricingLoading ? (
+                  <div className="price-skeleton" style={{ width: '100px', height: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}></div>
+                ) : (
+                  <>
+                    <span className="current-price">{currencySymbol}{finalPrice}</span>
+                    {show_discount && (
+                      <span className="old-price">{currencySymbol}{originalPrice}</span>
+                    )}
+                  </>
                 )}
               </div>
               <p className="price-note">{t('hero.price_note')}</p>

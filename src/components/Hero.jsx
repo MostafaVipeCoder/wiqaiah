@@ -17,6 +17,8 @@ const Hero = () => {
     show_discount,
     discount_text_en,
     discount_text_ar,
+    currencySymbol,
+    loading: pricingLoading,
   } = usePricing();
 
   const badgeText = lang === 'ar' ? discount_text_ar : discount_text_en;
@@ -37,19 +39,27 @@ const Hero = () => {
           <div className="hero-actions">
             <Link to="/book" className="primary-btn">{get('book_btn', lang, t('hero.book_btn'))}</Link>
             <div className="price-tag">
-              <span className="price">${finalPrice}</span>
-              {show_discount && (
+              {pricingLoading ? (
+                <div className="price-skeleton" style={{ width: '80px', height: '30px', background: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}></div>
+              ) : (
                 <>
-                  <span className="old-price">${originalPrice}</span>
-                  {badgeText && <span className="discount">{badgeText}</span>}
+                  <span className="price">{currencySymbol}{finalPrice}</span>
+                  {show_discount && (
+                    <>
+                      <span className="old-price">{currencySymbol}{originalPrice}</span>
+                      {badgeText && <span className="discount">{badgeText}</span>}
+                    </>
+                  )}
                 </>
               )}
             </div>
           </div>
 
           <div className="hero-features">
-            <div className="feature"><span>✓</span> {get('feature_no_waiting', lang, t('hero.features.no_waiting'))}</div>
-            <div className="feature"><span>✓</span> {get('feature_no_prescriptions', lang, t('hero.features.no_prescriptions'))}</div>
+            <div className="feature">
+              <span>✓</span> 
+              {!pricingLoading ? t('hero.price_note', { price: finalPrice, symbol: currencySymbol }) : '...'}
+            </div>
             <div className="feature"><span>✓</span> {get('feature_same_dentist', lang, t('hero.features.same_dentist'))}</div>
           </div>
         </div>
@@ -64,8 +74,6 @@ const Hero = () => {
                 <div className="placeholder-blob" />
               </div>
             )}
-            <div className="floating-card c1">🦷 {lang === 'ar' ? 'عناية وقائية' : 'Preventive Care'}</div>
-            <div className="floating-card c2">✨ {lang === 'ar' ? 'استشارة أونلاين' : 'Online consult'}</div>
           </div>
         </div>
       </div>

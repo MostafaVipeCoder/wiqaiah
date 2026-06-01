@@ -82,14 +82,28 @@
   box-shadow: 0 0 0 3px rgba(43, 181, 160, 0.12);
 }
 
-.error-msg {
-  background: #FFEEED;
-  color: #DC2626;
-  padding: 12px;
-  border-radius: 8px;
+.error-alert {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 14px 16px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 500;
-  border: 1px solid #FECACA;
+  font-weight: 600;
+  border: 1px solid #fecaca;
+  margin-bottom: 24px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
 .login-btn {

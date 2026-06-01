@@ -92,21 +92,24 @@ const LoginPage = () => {
     setLoading(true);
     setError('');
     
-    const loginPromise = login(email, password);
-    
-    toast.promise(loginPromise, {
-      loading: t('login_page.logging_in'),
-      success: t('login_page.success'),
-      error: t('login_page.failed'),
-    });
-
-    const { error: loginError } = await loginPromise;
-    if (!loginError) {
-      navigate('/dashboard');
-    } else {
-      setError(loginError.message || 'Login failed');
+    try {
+      const { error: loginError } = await login(email, password);
+      
+      if (loginError) {
+        // إذا كان هناك خطأ، نقوم بتعيينه ليظهر داخل الكارت
+        setError(loginError.message);
+        toast.error(t('login_page.failed'));
+      } else {
+        // نجاح تسجيل الدخول
+        toast.success(t('login_page.success'));
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred');
+      toast.error(t('login_page.failed'));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

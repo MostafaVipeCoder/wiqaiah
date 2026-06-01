@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Calendar, Clock, MapPin } from 'lucide-react';
+import { usePricing } from '../hooks/usePricing';
 import './Webinars.css';
 
 const WebinarCard = ({ webinar }) => {
   const { t, i18n } = useTranslation();
+  const { currencySymbol } = usePricing();
   const title = i18n.language === 'ar' ? webinar.title_ar || webinar.title : webinar.title;
   
   const approvedCount = webinar.webinar_registrations?.filter(r => r.status === 'approved').length || 0;
@@ -26,7 +28,7 @@ const WebinarCard = ({ webinar }) => {
              {approvedCount} / {capacity} {t('webinars_section.spots_filled')}
           </span>
         </div>
-        {!webinar.cover_url && <div className="webinar-price">${webinar.price || 9}</div>}
+        {!webinar.cover_url && <div className="webinar-price">{currencySymbol}{webinar.price || 9}</div>}
       </div>
       <div className="webinar-content">
         <h3 className="webinar-topic">{title}</h3>

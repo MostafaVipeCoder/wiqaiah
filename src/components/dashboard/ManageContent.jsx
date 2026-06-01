@@ -28,6 +28,15 @@ const LIST_KEY_PREFIXES = {
 
 import { invalidatePricingCache } from '../../hooks/usePricing';
 
+const CURRENCIES = [
+  { code: 'EGP', symbol: 'ج.م', label: 'الجنيه المصري (EGP)' },
+  { code: 'USD', symbol: '$', label: 'الدولار الأمريكي (USD)' },
+  { code: 'SAR', symbol: 'ر.س', label: 'الريال السعودي (SAR)' },
+  { code: 'AED', symbol: 'د.إ', label: 'الدرهم الإماراتي (AED)' },
+  { code: 'EUR', symbol: '€', label: 'اليورو (EUR)' },
+  { code: 'GBP', symbol: '£', label: 'الجنيه الإسترليني (GBP)' },
+];
+
 // ─── Pricing Section (reads/writes site_settings) ────────────────────────────
 const PricingSection = () => {
   const [pricing, setPricing] = useState(null);
@@ -39,6 +48,15 @@ const PricingSection = () => {
       if (data) setPricing(data);
     });
   }, []);
+
+  const handleCurrencyChange = (code) => {
+    const selected = CURRENCIES.find(c => c.code === code);
+    setPricing({
+      ...pricing,
+      currency_code: selected.code,
+      currency_symbol: selected.symbol
+    });
+  };
 
   const handleSave = async () => {
     if (!pricing) return;
@@ -86,14 +104,42 @@ const PricingSection = () => {
       <div className="cms-pricing-grid">
         {/* Price */}
         <div className="cms-pricing-card">
-          <label className="cms-pricing-label">سعر الاستشارة ($)</label>
-          <input
-            className="cms-input"
-            type="number" step="0.01" min="0"
-            value={pricing.consultation_price ?? ''}
-            onChange={e => setPricing({ ...pricing, consultation_price: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-          />
+          <label className="cms-pricing-label">سعر الاستشارة</label>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              className="cms-input"
+              style={{ flex: 1 }}
+              type="number" step="0.01" min="0"
+              value={pricing.consultation_price ?? ''}
+              onChange={e => setPricing({ ...pricing, consultation_price: e.target.value === '' ? '' : parseFloat(e.target.value) })}
+            />
+            <select 
+              className="cms-input"
+              style={{ width: 'auto' }}
+              value={pricing.currency_code || 'EGP'}
+              onChange={e => handleCurrencyChange(e.target.value)}
+            >
+              {CURRENCIES.map(c => (
+                <option key={c.code} value={c.code}>{c.code}</option>
+              ))}
+            </select>
+          </div>
           <p className="help-text">يظهر في: الصفحة الرئيسية (Hero) + قسم العرض (Offer)</p>
+        </div>
+
+        {/* Currency Selector (Detailed) */}
+        <div className="cms-pricing-card">
+          <label className="cms-pricing-label">العملة النشطة</label>
+          <select 
+            className="cms-input"
+            value={pricing.currency_code || 'EGP'}
+            onChange={e => handleCurrencyChange(e.target.value)}
+          >
+            {CURRENCIES.map(c => (
+              <option key={c.code} value={c.code}>{c.label}</option>
+            ))}
+          </select>
+          <p className="help-text">العملة الافتراضية هي الجنيه المصري (EGP)</p>
         </div>
 
         {/* Discount */}
@@ -196,7 +242,7 @@ const ManageContent = () => {
     setSaving(true);
     setMessage({ type: '', text: '' });
     const updates = rows.map(({ id, value_en, value_ar, sort_order }) =>
-      supabase.from('page_content').update({ value_en, value_ar, sort_order, updated_at: new Date() }).eq('id', id)
+      supabase.from('page_content').update({ value_en, value_ar, sort_order }).eq('id', id)
     );
     const results = await Promise.all(updates);
     const hasError = results.some(r => r.error);
