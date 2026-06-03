@@ -6,9 +6,18 @@
     <script type="text/javascript">
       // Single Page Apps for GitHub Pages
       // https://github.com/rafgraph/spa-github-pages
-      var pathSegmentsToKeep = 1;
-
+      // This script will detect if the app is in a subfolder (repo name) or root
       var l = window.location;
+      var pathSegmentsToKeep = 0;
+      
+      // If we are on github.io and have a path, the first segment is the repo name
+      if (l.hostname.indexOf('github.io') !== -1) {
+        var segments = l.pathname.split('/');
+        if (segments.length > 1 && segments[1] !== "") {
+          pathSegmentsToKeep = 1;
+        }
+      }
+
       l.replace(
         l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
         l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
